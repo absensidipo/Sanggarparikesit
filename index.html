@@ -1944,6 +1944,40 @@ async function testAndSyncData(targetUrl = null) {
         console.error('Gagal melakukan sinkronisasi ke Google Sheets:', error);
     }
 }
+        // Fungsi untuk menarik data terbaru dari Google Sheets saat aplikasi dimuat / direfresh
+async function loadDataFromCloud() {
+    const sheetUrl = localStorage.getItem('sanggar_parikesit_sheet_url');
+    if (!sheetUrl) return;
+
+    try {
+        console.log('Mengambil data terbaru dari Cloud Google Sheets...');
+        
+        // Memanggil endpoint Web App dengan parameter atau metode GET (jika disiapkan di Apps Script)
+        const response = await fetch(sheetUrl + '?action=getData');
+        const result = await response.json();
+
+        if (result && result.status === 'success') {
+            // Perbarui LocalStorage dengan data terbaru dari Cloud
+            if (result.pembina) localStorage.setItem('sanggar_parikesit_pembina', JSON.stringify(result.pembina));
+            if (result.rombel) localStorage.setItem('sanggar_parikesit_rombel', JSON.stringify(result.rombel));
+            if (result.siswa) localStorage.setItem('sanggar_parikesit_siswa', JSON.stringify(result.siswa));
+
+            console.log('Data berhasil disinkronkan dari Cloud!');
+            
+            // Muat ulang tampilan tabel di web agar data terbaru langsung muncul
+            if (typeof renderSiswa === 'function') renderSiswa();
+            if (typeof renderPembina === 'function') renderPembina();
+            if (typeof renderRombel === 'function') renderRombel();
+        }
+    } catch (error) {
+        console.error('Gagal memuat data dari Cloud:', error);
+    }
+}
+
+// Jalankan fungsi tarik data otomatis saat halaman web pertama kali dibuka
+window.addEventListener('DOMContentLoaded', () => {
+    loadDataFromCloud();
+});
 
 // 3. Fungsi otomatis untuk memuat URL yang tersimpan saat halaman pertama kali dibuka
 window.addEventListener('DOMContentLoaded', () => {
