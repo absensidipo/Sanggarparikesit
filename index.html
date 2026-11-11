@@ -62,7 +62,6 @@
 
     <!-- MAIN CONTENT -->
     <div class="flex-1 flex flex-col overflow-hidden">
-        <!-- TOP HEADER -->
         <header class="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between shadow-sm z-10">
             <div class="flex items-center space-x-4">
                 <h2 id="page-title" class="text-xl font-bold text-slate-800">Dashboard Sanggar</h2>
@@ -75,58 +74,84 @@
                 </label>
                 <div class="bg-red-50 border border-red-200 text-[#7B1113] px-3 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5">
                     <i class="fa-solid fa-user-shield"></i>
-                    <span id="current-role-badge">Administrator Utama</span>
+                    <span>Administrator Utama</span>
                 </div>
                 <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5">
                     <i class="fa-solid fa-cloud-arrow-up text-emerald-600"></i>
-                    <span>Google Sheets: Terhubung</span>
+                    <span>Cloud Active</span>
                 </div>
             </div>
         </header>
 
-        <!-- VIEW CONTAINER -->
         <main class="flex-1 overflow-y-auto p-8 bg-slate-50 relative" id="main-content">
-            <!-- Konten Dinamis dimuat di sini -->
+            <!-- Konten Dinamis -->
         </main>
     </div>
 
-    <!-- SCRIPT UTAMA APLIKASI -->
     <script>
-        // URL GOOGLE SHEETS API YANG DIHUBUNGKAN PERMANEN
-        const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbysCl8HJTrVL_una_qtFvQ3okdN8CxNMabw46XhkvaXTRXpNhddUFMI2XUFF6Y4e5VMvg/exec";
+        // URL GOOGLE SHEETS API TERBARU
+        const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbypSxLK24qETz5Jr4iu0IAjXA9UZfn5FjzOKNzdcitCtn3qezGa010WwjmzaEpj9e_Elg/exec";
 
         let appData = {
-            logo: localStorage.getItem('sanggar_logo') || '',
+            logo: '',
             siswa: [
                 { nis: "2026001", nama: "Galang Prasetyo", peminatan: "Seni Karawitan", rombel: "Karawitan Dasar A", jk: "L" },
-                { nis: "2026002", nama: "Dinda Lestari", peminatan: "Seni Tari", rombel: "Tari Dasar A", jk: "P" },
-                { nis: "2026003", nama: "Bagas Saputra", peminatan: "Seni Karawitan", rombel: "Karawitan Menengah A", jk: "L" },
-                { nis: "2026004", nama: "Siti Rahmawati", peminatan: "Seni Tari", rombel: "Tari Mahir A", jk: "P" }
+                { nis: "2026002", nama: "Dinda Lestari", peminatan: "Seni Tari", rombel: "Tari Dasar A", jk: "P" }
             ],
             pembina: [
                 { id: "P01", nama: "Ki Sastro Utomo", bidang: "Seni Karawitan", telp: "081234567890", status: "Aktif" },
-                { id: "P02", nama: "Nyi Rina Hastuti", bidang: "Seni Tari", telp: "085678901234", status: "Aktif" },
-                { id: "P03", nama: "Ki Bayu Prabowo", bidang: "Seni Karawitan", telp: "087812345678", status: "Aktif" }
+                { id: "P02", nama: "Nyi Rina Hastuti", bidang: "Seni Tari", telp: "085678901234", status: "Aktif" }
             ],
             rombel: [
                 { nama: "Karawitan Dasar A", tingkat: "Tingkat Dasar (Pemula)", pembina: "Ki Sastro Utomo", bidang: "Seni Karawitan" },
-                { nama: "Karawitan Dasar B", tingkat: "Tingkat Dasar (Pemula)", pembina: "Ki Bayu Prabowo", bidang: "Seni Karawitan" },
-                { nama: "Karawitan Menengah A", tingkat: "Tingkat Menengah (Terampil)", pembina: "Ki Sastro Utomo", bidang: "Seni Karawitan" },
                 { nama: "Tari Dasar A", tingkat: "Tingkat Dasar (Pemula)", pembina: "Nyi Rina Hastuti", bidang: "Seni Tari" }
             ],
-            absensi: [],
-            nilai: {}
+            absensi: []
         };
 
-        // Fungsi Sinkronisasi ke Google Sheets
+        async function loadCloudData() {
+            try {
+                const response = await fetch(GOOGLE_SHEETS_URL);
+                const data = await response.json();
+                
+                if (data.siswa && data.siswa.length > 1) {
+                    appData.siswa = data.siswa.slice(1).map(row => ({
+                        nis: String(row[1]),
+                        nama: row[2],
+                        peminatan: row[3],
+                        rombel: row[4],
+                        jk: row[5]
+                    }));
+                }
+                
+                if (data.absensi && data.absensi.length > 1) {
+                    appData.absensi = data.absensi.slice(1).map(row => ({
+                        nis: String(row[1]),
+                        nama: row[2],
+                        tanggal: row[3],
+                        waktu: row[4],
+                        status: row[5]
+                    }));
+                }
+
+                if (data.config && data.config.length > 1) {
+                    const logoConfig = data.config.find(row => row[0] === 'sanggar_logo');
+                    if (logoConfig) appData.logo = logoConfig[1];
+                }
+                renderDashboard();
+            } catch (e) {
+                console.log("Gagal memuat dari cloud, menggunakan data lokal:", e);
+                renderDashboard();
+            }
+        }
+
         function syncToGoogleSheets(action, payload) {
             if (!GOOGLE_SHEETS_URL) return;
-            const data = { action: action, ...payload };
             fetch(GOOGLE_SHEETS_URL, {
                 method: "POST",
                 mode: "no-cors",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data)
+                body: JSON.stringify({ action, ...payload })
             }).catch(err => console.log("Cloud sync error:", err));
         }
 
@@ -136,13 +161,17 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     appData.logo = e.target.result;
-                    localStorage.setItem('sanggar_logo', appData.logo);
-                    alert("Logo sanggar berhasil diperbarui!");
-                    location.reload();
+                    syncToGoogleSheets("saveConfig", { key: 'sanggar_logo', value: appData.logo });
+                    alert("Logo sanggar berhasil diunggah & tersimpan ke Cloud Google Sheets!");
+                    renderDashboard();
                 };
                 reader.readAsDataURL(file);
             }
         }
+
+        window.onload = function() {
+            loadCloudData();
+        };
 
         function switchTab(tabId) {
             document.querySelectorAll('.nav-link').forEach(el => {
@@ -152,7 +181,6 @@
             event.currentTarget.classList.add('bg-amber-500', 'text-slate-900', 'font-semibold', 'shadow');
             event.currentTarget.classList.remove('text-red-100', 'hover:bg-red-900/50');
 
-            const content = document.getElementById('main-content');
             const titles = {
                 'dashboard': 'Dashboard Sanggar',
                 'admin-pembina': 'Data Guru Pembina',
@@ -170,12 +198,11 @@
             else if (tabId === 'scan-absensi') renderScanAbsensi();
             else if (tabId === 'rekap-kehadiran') renderRekapKehadiran();
             else if (tabId === 'raport') renderRaport();
-            else content.innerHTML = `<div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200"><h3 class="font-bold text-lg mb-2">${titles[tabId]}</h3><p class="text-sm text-slate-500">Modul manajemen aktif dan terhubung ke cloud.</p></div>`;
+            else document.getElementById('main-content').innerHTML = `<div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200"><h3 class="font-bold text-lg mb-2">${titles[tabId]}</h3><p class="text-sm text-slate-500">Modul aktif dan tersinkronisasi cloud.</p></div>`;
         }
 
         function renderDashboard() {
-            const content = document.getElementById('main-content');
-            content.innerHTML = `
+            document.getElementById('main-content').innerHTML = `
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
                         <div><p class="text-xs font-bold text-slate-400 uppercase">Total Siswa</p><h3 class="text-2xl font-extrabold text-slate-800 mt-1">${appData.siswa.length}</h3></div>
@@ -190,7 +217,7 @@
                         <div class="bg-indigo-100 text-indigo-700 p-3.5 rounded-xl"><i class="fa-solid fa-users-rectangle text-lg"></i></div>
                     </div>
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
-                        <div><p class="text-xs font-bold text-slate-400 uppercase">Cloud Database</p><h3 class="text-lg font-bold text-emerald-600 mt-1">Google Sheets</h3></div>
+                        <div><p class="text-xs font-bold text-slate-400 uppercase">Cloud Storage</p><h3 class="text-lg font-bold text-emerald-600 mt-1">Google Sheets</h3></div>
                         <div class="bg-emerald-100 text-emerald-700 p-3.5 rounded-xl"><i class="fa-solid fa-cloud text-lg"></i></div>
                     </div>
                 </div>
@@ -198,8 +225,7 @@
         }
 
         function renderSiswa() {
-            const content = document.getElementById('main-content');
-            let rows = appData.siswa.map((s, i) => `
+            let rows = appData.siswa.map(s => `
                 <tr class="hover:bg-slate-50 border-b border-slate-100">
                     <td class="py-3 px-4 font-semibold text-slate-700">${s.nis}</td>
                     <td class="py-3 px-4 font-bold text-slate-900">${s.nama}</td>
@@ -213,7 +239,7 @@
                 </tr>
             `).join('');
 
-            content.innerHTML = `
+            document.getElementById('main-content').innerHTML = `
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="font-bold text-lg text-slate-800">Daftar Siswa Sanggar Parikesit</h3>
@@ -253,28 +279,24 @@
             const peminatan = prompt("Masukkan Peminatan (Seni Karawitan / Seni Tari):");
             const rombel = prompt("Masukkan Nama Rombel:");
             if (nis && nama) {
-                appData.siswa.push({ nis, nama, peminatan: peminatan || 'Seni Karawitan', rombel: rombel || 'Umum', jk: 'L' });
+                const siswaBaru = { nis, nama, peminatan: peminatan || 'Seni Karawitan', rombel: rombel || 'Umum', jk: 'L' };
+                appData.siswa.push(siswaBaru);
                 syncToGoogleSheets("saveSiswa", { id: nis, nama, peminatan, rombel, jk: 'L' });
                 renderSiswa();
-                alert("Siswa berhasil ditambahkan & disinkronkan ke Google Sheets!");
+                alert("Siswa berhasil ditambahkan & langsung tersimpan ke Google Sheets!");
             }
         }
 
         function bukaKartuQR(nis, nama, rombel) {
             document.getElementById('qr-modal').classList.remove('hidden');
             document.getElementById('modal-nama').innerText = nama;
-            document.getElementById('modal-nis').innerText = `NIS: ${nis} •${rombel}`;
+            document.getElementById('modal-nis').innerText = `NIS: ${nis} • ${rombel}`;
             document.getElementById('qrcode-box').innerHTML = "";
-            new QRCode(document.getElementById('qrcode-box'), {
-                text: nis,
-                width: 128,
-                height: 128
-            });
+            new QRCode(document.getElementById('qrcode-box'), { text: nis, width: 128, height: 128 });
         }
 
         function renderScanAbsensi() {
-            const content = document.getElementById('main-content');
-            content.innerHTML = `
+            document.getElementById('main-content').innerHTML = `
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                         <h3 class="font-bold text-lg text-slate-800 mb-4">Scan QR Barcode Kamera</h3>
@@ -282,5 +304,145 @@
                         <button onclick="mulaiKamera()" class="w-full bg-[#7B1113] text-white py-3 rounded-xl font-bold text-sm shadow hover:bg-red-900">Aktifkan Kamera Scanner</button>
                     </div>
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <h3 class="font-bold text-lg text-slate-800 mb-4">Log Kehadiran Hari Ini</h3>
-                        <div id="log
+                        <h3 class="font-bold text-lg text-slate-800 mb-4">Log Kehadiran Tersimpan</h3>
+                        <div id="log-absen" class="space-y-2 max-h-96 overflow-y-auto">
+                            ${appData.absensi.slice(-10).reverse().map(a => `
+                                <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex justify-between items-center text-sm">
+                                    <div><span class="font-bold text-slate-900">${a.nama}</span> <span class="text-xs text-slate-500">(${a.nis})</span></div>
+                                    <span class="text-xs bg-emerald-200 text-emerald-800 px-2 py-1 rounded font-bold">${a.tanggal} ${a.waktu}</span>
+                                </div>
+                            `).join('') || '<p class="text-sm text-slate-400 italic">Belum ada data absensi.</p>'}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function mulaiKamera() {
+            const html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                (decodedText) => {
+                    const siswa = appData.siswa.find(s => s.nis === decodedText);
+                    if (siswa) {
+                        const waktu = new Date().toLocaleTimeString();
+                        const tanggal = new Date().toLocaleDateString();
+                        appData.absensi.push({ nis: siswa.nis, nama: siswa.nama, tanggal, waktu, status: 'Hadir' });
+                        syncToGoogleSheets("saveAbsensi", { nis: siswa.nis, nama: siswa.nama, tanggal, waktu, status: 'Hadir' });
+                        renderScanAbsensi();
+                    }
+                },
+                (err) => {}
+            ).catch(err => alert("Kamera tidak dapat diakses."));
+        }
+
+        function renderRekapKehadiran() {
+            let rows = appData.siswa.map(s => {
+                let hadir = appData.absensi.filter(a => a.nis === s.nis).length;
+                return `
+                    <tr class="border-b border-slate-100">
+                        <td class="py-3 px-4 font-semibold text-slate-700">${s.nis}</td>
+                        <td class="py-3 px-4 font-bold text-slate-900">${s.nama}</td>
+                        <td class="py-3 px-4 text-slate-600">${s.rombel}</td>
+                        <td class="py-3 px-4 text-center font-bold text-emerald-600">${hadir} Hadir</td>
+                    </tr>
+                `;
+            }).join('');
+            document.getElementById('main-content').innerHTML = `
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                    <h3 class="font-bold text-lg text-slate-800 mb-4">Rekapitulasi Kehadiran Siswa</h3>
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 uppercase text-xs">
+                                <th class="py-3 px-4 rounded-l-xl">NIS</th>
+                                <th class="py-3 px-4">Nama Siswa</th>
+                                <th class="py-3 px-4">Rombel</th>
+                                <th class="py-3 px-4 text-center rounded-r-xl">Total Hadir</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function renderRaport() {
+            let rows = appData.siswa.map(s => `
+                <tr class="border-b border-slate-100">
+                    <td class="py-3 px-4 font-semibold text-slate-700">${s.nis}</td>
+                    <td class="py-3 px-4 font-bold text-slate-900">${s.nama}</td>
+                    <td class="py-3 px-4 text-slate-600">${s.peminatan}</td>
+                    <td class="py-3 px-4 text-center">
+                        <button onclick="downloadRaportPDF('${s.nis}')" class="bg-[#7B1113] text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-900 shadow-sm">
+                            <i class="fa-solid fa-file-pdf mr-1"></i> Download PDF
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            document.getElementById('main-content').innerHTML = `
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                    <h3 class="font-bold text-lg text-slate-800 mb-4">Pilih Siswa untuk Cetak Raport</h3>
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 uppercase text-xs">
+                                <th class="py-3 px-4 rounded-l-xl">NIS</th>
+                                <th class="py-3 px-4">Nama Siswa</th>
+                                <th class="py-3 px-4">Peminatan</th>
+                                <th class="py-3 px-4 text-center rounded-r-xl">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+                <div id="print-container" class="print-area"></div>
+            `;
+        }
+
+        function downloadRaportPDF(nis) {
+            const siswa = appData.siswa.find(s => s.nis === nis);
+            const container = document.getElementById('print-container');
+            const logoSrc = appData.logo || 'https://via.placeholder.com/80';
+            
+            container.innerHTML = `
+                <div style="padding: 40px; font-family: 'Plus Jakarta Sans', sans-serif; background: #fff; color: #1e293b;">
+                    <div style="display: flex; align-items: center; border-bottom: 3px double #7B1113; padding-bottom: 15px; margin-bottom: 25px;">
+                        <img src="${logoSrc}" style="width: 75px; height: 75px; object-fit: contain; margin-right: 20px;" />
+                        <div style="text-align: center; flex: 1;">
+                            <h2 style="margin: 0; font-size: 20px; font-weight: bold; color: #7B1113;">SANGGAR SENI TRADISI PARIKESIT</h2>
+                            <p style="margin: 3px 0; font-size: 11px; color: #475569;">Jl. Kebumen - Banjarnegara KM 25, Giritirto RT 001 RW 001, Karanggayam, Kebumen 54365</p>
+                        </div>
+                    </div>
+                    <h3 style="text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 20px; text-decoration: underline;">RAPORT HASIL BELAJAR SENI TRADISIONAL</h3>
+                    <table style="width: 100%; font-size: 12px; margin-bottom: 20px;">
+                        <tr><td><strong>Nama Siswa:</strong> ${siswa.nama}</td><td><strong>Rombel:</strong> ${siswa.rombel}</td></tr>
+                        <tr><td><strong>Nomor Induk:</strong> ${siswa.nis}</td><td><strong>Peminatan:</strong> ${siswa.peminatan}</td></tr>
+                    </table>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 30px;">
+                        <thead>
+                            <tr style="background: #f1f5f9;">
+                                <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">No</th>
+                                <th style="border: 1px solid #cbd5e1; padding: 8px;">Aspek Penilaian Seni</th>
+                                <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">Nilai</th>
+                                <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">Predikat</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">1</td><td style="border: 1px solid #cbd5e1; padding: 8px;">Teknik & Penguasaan Gerak / Instrumen</td><td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">88</td><td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">A</td></tr>
+                        </tbody>
+                    </table>
+                    <div style="display: flex; justify-content: space-between; margin-top: 50px; font-size: 12px;">
+                        <div style="text-align: center;"><p>Guru Pembina Rombel</p><br><br><br><p style="font-weight: bold; text-decoration: underline;">Ki Sastro Utomo</p></div>
+                        <div style="text-align: center;"><p>Ketua Sanggar Parikesit</p><br><br><br><p style="font-weight: bold; text-decoration: underline;">Slamet Sugiono</p></div>
+                    </div>
+                </div>
+            `;
+            setTimeout(() => {
+                const element = document.getElementById('print-container');
+                html2pdf().from(element).save(`Raport_${siswa.nama.replace(/\s+/g, '_')}.pdf`);
+            }, 500);
+        }
+    </script>
+</body>
+</html>
