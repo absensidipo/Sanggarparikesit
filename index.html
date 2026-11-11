@@ -96,7 +96,7 @@
             <div id="qrcode-box" class="flex justify-center mb-4 p-4 bg-slate-50 rounded-xl border border-slate-200"></div>
             <h5 id="modal-nama" class="font-bold text-slate-900 text-base"></h5>
             <p id="modal-nis" class="text-xs text-slate-500 mb-4"></p>
-            <button onclick="tutupModalQR()" class="w-full bg-slate-200 text-slate-700 py-2 rounded-xl text-xs font-bold hover:bg-slate-300 cursor-pointer">Tutup</button>
+            <button type="button" onclick="tutupModalQR()" class="w-full bg-slate-200 text-slate-700 py-2 rounded-xl text-xs font-bold hover:bg-slate-300 cursor-pointer">Tutup</button>
         </div>
     </div>
 
@@ -107,20 +107,16 @@
             logo: '',
             activeTab: 'dashboard',
             siswa: [
+                { nis: "SP-001", nama: "Anindya Kirana", peminatan: "Seni Tari", rombel: "Tari Dasar A", jk: "P" },
                 { nis: "2026001", nama: "Galang Prasetyo", peminatan: "Seni Karawitan", rombel: "Karawitan Dasar A", jk: "L" },
-                { nis: "2026002", nama: "Dinda Lestari", peminatan: "Seni Tari", rombel: "Tari Dasar A", jk: "P" },
-                { nis: "2026003", nama: "Bagas Saputra", peminatan: "Seni Karawitan", rombel: "Karawitan Menengah A", jk: "L" },
-                { nis: "2026004", nama: "Siti Rahmawati", peminatan: "Seni Tari", rombel: "Tari Mahir A", jk: "P" }
+                { nis: "2026002", nama: "Dinda Lestari", peminatan: "Seni Tari", rombel: "Tari Dasar A", jk: "P" }
             ],
             pembina: [
                 { id: "P01", nama: "Ki Sastro Utomo", bidang: "Seni Karawitan", telp: "081234567890", status: "Aktif" },
-                { id: "P02", nama: "Nyi Rina Hastuti", bidang: "Seni Tari", telp: "085678901234", status: "Aktif" },
-                { id: "P03", nama: "Ki Bayu Prabowo", bidang: "Seni Karawitan", telp: "087812345678", status: "Aktif" }
+                { id: "P02", nama: "Nyi Rina Hastuti", bidang: "Seni Tari", telp: "085678901234", status: "Aktif" }
             ],
             rombel: [
                 { nama: "Karawitan Dasar A", tingkat: "Tingkat Dasar (Pemula)", pembina: "Ki Sastro Utomo", bidang: "Seni Karawitan" },
-                { nama: "Karawitan Dasar B", tingkat: "Tingkat Dasar (Pemula)", pembina: "Ki Bayu Prabowo", bidang: "Seni Karawitan" },
-                { nama: "Karawitan Menengah A", tingkat: "Tingkat Menengah (Terampil)", pembina: "Ki Sastro Utomo", bidang: "Seni Karawitan" },
                 { nama: "Tari Dasar A", tingkat: "Tingkat Dasar (Pemula)", pembina: "Nyi Rina Hastuti", bidang: "Seni Tari" }
             ],
             absensi: []
@@ -314,9 +310,15 @@
                     <td class="py-3 px-4 font-bold text-slate-900">${s.nama}</td>
                     <td class="py-3 px-4 text-slate-600">${s.peminatan}</td>
                     <td class="py-3 px-4 text-slate-600">${s.rombel}</td>
-                    <td class="py-3 px-4 text-center">
-                        <button type="button" onclick="bukaKartuQR('${s.nis}', '${s.nama.replace(/'/g, "\\'")}', '${s.rombel}')" class="bg-amber-500 text-slate-900 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-amber-400 shadow-sm cursor-pointer">
-                            <i class="fa-solid fa-qrcode mr-1"></i> Cetak Kartu
+                    <td class="py-3 px-4 text-center space-x-1">
+                        <button type="button" onclick="bukaKartuQR('${s.nis}', '${s.nama.replace(/'/g, "\\'")}', '${s.rombel}')" class="bg-amber-100 text-amber-800 px-2.5 py-1 rounded-lg text-xs font-bold hover:bg-amber-200 cursor-pointer" title="Cetak QR">
+                            <i class="fa-solid fa-qrcode"></i> QR
+                        </button>
+                        <button type="button" onclick="editSiswa('${s.nis}')" class="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg text-xs font-bold hover:bg-slate-200 cursor-pointer" title="Edit">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button type="button" onclick="hapusSiswa('${s.nis}')" class="bg-red-50 text-red-600 px-2.5 py-1 rounded-lg text-xs font-bold hover:bg-red-100 cursor-pointer" title="Hapus">
+                            <i class="fa-solid fa-trash"></i>
                         </button>
                     </td>
                 </tr>
@@ -336,7 +338,7 @@
                                     <th class="py-3 px-4">Nama Siswa</th>
                                     <th class="py-3 px-4">Peminatan</th>
                                     <th class="py-3 px-4">Rombel</th>
-                                    <th class="py-3 px-4 text-center rounded-r-xl">Aksi QR</th>
+                                    <th class="py-3 px-4 text-center rounded-r-xl">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>${rows}</tbody>
@@ -359,6 +361,27 @@
             syncToGoogleSheets("saveSiswa", { id: nis, nama, peminatan: siswaBaru.peminatan, rombel: siswaBaru.rombel, jk: 'L' });
             renderSiswa();
             alert("Siswa berhasil ditambahkan & tersimpan ke Google Sheets!");
+        }
+
+        function editSiswa(nis) {
+            const siswa = appData.siswa.find(s => s.nis === nis);
+            if (!siswa) return;
+            const namaBaru = prompt("Edit Nama Siswa:", siswa.nama);
+            if (!namaBaru) return;
+            const rombelBaru = prompt("Edit Rombel Siswa:", siswa.rombel);
+            
+            siswa.nama = namaBaru;
+            if (rombelBaru) siswa.rombel = rombelBaru;
+            renderSiswa();
+            alert("Data siswa berhasil diperbarui!");
+        }
+
+        function hapusSiswa(nis) {
+            if (confirm("Apakah Anda yakin ingin menghapus data siswa ini?")) {
+                appData.siswa = appData.siswa.filter(s => s.nis !== nis);
+                renderSiswa();
+                alert("Data siswa berhasil dihapus!");
+            }
         }
 
         function bukaKartuQR(nis, nama, rombel) {
