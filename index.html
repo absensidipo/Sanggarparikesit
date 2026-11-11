@@ -167,6 +167,25 @@
             }
             renderCurrentTab();
         }
+        function bukaKartuQR(nis, nama, rombel) {
+            const modal = document.getElementById('qr-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.style.display = 'flex';
+            }
+            
+            const namaEl = document.getElementById('modal-nama');
+            if (namaEl) namaEl.innerText = nama;
+
+            const nisEl = document.getElementById('modal-nis');
+            if (nisEl) nisEl.innerText = `NIS: ${nis} • ${rombel}`;
+            
+            const qrBox = document.getElementById('qrcode-box');
+            if (qrBox) {
+                qrBox.innerHTML = "";
+                new QRCode(qrBox, { text: String(nis), width: 128, height: 128 });
+            }
+        }
 
         function syncToGoogleSheets(action, payload) {
             if (!GOOGLE_SHEETS_URL) return;
