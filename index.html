@@ -1885,6 +1885,76 @@
                 new QRCode(qrBox, { text: String(nis), width: 128, height: 128 });
             }
         }
+        // 1. Menyimpan URL Web App Google Apps Script ke LocalStorage dan langsung menguji koneksi
+function saveSheetUrl() {
+    const urlInput = document.getElementById('inputSheetUrl');
+    if (!urlInput) return;
+    
+    const url = urlInput.value.trim();
+    
+    // Validasi sederhana format URL Google Apps Script
+    if (!url.startsWith('https://script.google.com/macros/s/')) {
+        alert('Format URL Google Apps Script tidak valid. Pastikan diawali dengan https://script.google.com/macros/s/...');
+        return;
+    }
+
+    // Simpan ke localStorage
+    localStorage.setItem('sanggar_parikesit_sheet_url', url);
+    alert('URL Google Sheets berhasil disimpan!');
+    
+    // Tutup modal konfigurasi
+    toggleModal('modalSync');
+    
+    // Coba lakukan sinkronisasi data pertama kali
+    testAndSyncData(url);
+}
+
+// 2. Fungsi untuk menguji koneksi dan mengirim data (Payload) ke Google Sheets via Fetch API
+async function testAndSyncData(targetUrl = null) {
+    const sheetUrl = targetUrl || localStorage.getItem('sanggar_parikesit_sheet_url');
+    if (!sheetUrl) {
+        console.log('URL Google Sheets belum dikonfigurasi.');
+        return;
+    }
+
+    // Kumpulkan data aplikasi yang ingin disinkronkan
+    const payload = {
+        action: 'syncData',
+        pembina: JSON.parse(localStorage.getItem('sanggar_parikesit_pembina') || '[]'),
+        rombel: JSON.parse(localStorage.getItem('sanggar_parikesit_rombel') || '[]'),
+        siswa: JSON.parse(localStorage.getItem('sanggar_parikesit_siswa') || '[]'),
+        timestamp: new Date().toISOString()
+    };
+
+    try {
+        console.log('Mengirim data ke Google Sheets...');
+        
+        // Menggunakan mode 'no-cors' atau standar POST tergantung pengaturan Apps Script Anda
+        const response = await fetch(sheetUrl, {
+            method: 'POST',
+            mode: 'no-cors', // Diperlukan agar tidak terhalang kebijakan CORS browser pada Apps Script
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload)
+        });
+
+        console.log('Sinkronisasi ke Cloud Google Sheets berhasil dikirim.');
+    } catch (error) {
+        console.error('Gagal melakukan sinkronisasi ke Google Sheets:', error);
+    }
+}
+
+// 3. Fungsi otomatis untuk memuat URL yang tersimpan saat halaman pertama kali dibuka
+window.addEventListener('DOMContentLoaded', () => {
+    const savedUrl = localStorage.getItem('sanggar_parikesit_sheet_url');
+    if (savedUrl) {
+        const inputEl = document.getElementById('inputSheetUrl');
+        if (inputEl) {
+            inputEl.value = savedUrl;
+        }
+    }
+});
     </script>
 </body>
 </html>
