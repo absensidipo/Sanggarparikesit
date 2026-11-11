@@ -40,18 +40,18 @@
         </div>
         
         <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto text-sm font-medium" id="sidebar-nav">
-            <a href="#" onclick="switchTab('dashboard', this)" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500 text-slate-900 font-semibold shadow transition"><i class="fa-solid fa-chart-pie w-5"></i><span>Dashboard</span></a>
+            <a href="#" onclick="switchTab('dashboard', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500 text-slate-900 font-semibold shadow transition"><i class="fa-solid fa-chart-pie w-5"></i><span>Dashboard</span></a>
             
             <div class="pt-4 pb-2 text-[11px] font-bold uppercase tracking-wider text-red-300 px-4">FITUR ADMIN</div>
-            <a href="#" onclick="switchTab('admin-pembina', this)" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-red-100 hover:bg-red-900/50 transition"><i class="fa-solid fa-chalkboard-user w-5"></i><span>Data Pembina</span></a>
-            <a href="#" onclick="switchTab('admin-rombel', this)" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-red-100 hover:bg-red-900/50 transition"><i class="fa-solid fa-users-rectangle w-5"></i><span>Manajemen Rombel</span></a>
+            <a href="#" onclick="switchTab('admin-pembina', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-red-100 hover:bg-red-900/50 transition"><i class="fa-solid fa-chalkboard-user w-5"></i><span>Data Pembina</span></a>
+            <a href="#" onclick="switchTab('admin-rombel', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-red-100 hover:bg-red-900/50 transition"><i class="fa-solid fa-users-rectangle w-5"></i><span>Manajemen Rombel</span></a>
 
             <div class="pt-4 pb-2 text-[11px] font-bold uppercase tracking-wider text-red-300 px-4">PEMBELAJARAN & PRESENSI</div>
-            <a href="#" onclick="switchTab('siswa', this)" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-red-100 hover:bg-red-900/50 transition"><i class="fa-solid fa-id-card w-5"></i><span>Data Siswa & Kartu QR</span></a>
-            <a href="#" onclick="switchTab('scan-absensi', this)" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-red-100 hover:bg-red-900/50 transition"><i class="fa-solid fa-qrcode w-5"></i><span>Scan QR Absensi</span></a>
-            <a href="#" onclick="switchTab('rekap-kehadiran', this)" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-red-100 hover:bg-red-900/50 transition"><i class="fa-solid fa-clipboard-user w-5"></i><span>Rekap Kehadiran</span></a>
-            <a href="#" onclick="switchTab('penilaian', this)" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-red-100 hover:bg-red-900/50 transition"><i class="fa-solid fa-award w-5"></i><span>Penilaian Seni</span></a>
-            <a href="#" onclick="switchTab('raport', this)" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-red-100 hover:bg-red-900/50 transition"><i class="fa-solid fa-file-lines w-5"></i><span>Cetak Raport</span></a>
+            <a href="#" onclick="switchTab('siswa', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-red-100 hover:bg-red-900/50 transition"><i class="fa-solid fa-id-card w-5"></i><span>Data Siswa & Kartu QR</span></a>
+            <a href="#" onclick="switchTab('scan-absensi', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-red-100 hover:bg-red-900/50 transition"><i class="fa-solid fa-qrcode w-5"></i><span>Scan QR Absensi</span></a>
+            <a href="#" onclick="switchTab('rekap-kehadiran', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-red-100 hover:bg-red-900/50 transition"><i class="fa-solid fa-clipboard-user w-5"></i><span>Rekap Kehadiran</span></a>
+            <a href="#" onclick="switchTab('penilaian', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-red-100 hover:bg-red-900/50 transition"><i class="fa-solid fa-award w-5"></i><span>Penilaian Seni</span></a>
+            <a href="#" onclick="switchTab('raport', this); return false;" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl text-red-100 hover:bg-red-900/50 transition"><i class="fa-solid fa-file-lines w-5"></i><span>Cetak Raport</span></a>
         </nav>
 
         <div class="p-4 border-t border-red-900 text-xs text-red-200">
@@ -86,6 +86,18 @@
         <main class="flex-1 overflow-y-auto p-8 bg-slate-50 relative" id="main-content">
             <!-- Konten Dinamis -->
         </main>
+    </div>
+
+    <!-- GLOBAL MODAL QR CODE -->
+    <div id="qr-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-2xl shadow-xl w-80 text-center">
+            <h4 class="font-bold text-slate-800 mb-1">KARTU ANGGOTA</h4>
+            <p class="text-xs text-slate-500 mb-4">Sanggar Seni Parikesit</p>
+            <div id="qrcode-box" class="flex justify-center mb-4 p-4 bg-slate-50 rounded-xl border border-slate-200"></div>
+            <h5 id="modal-nama" class="font-bold text-slate-900 text-base"></h5>
+            <p id="modal-nis" class="text-xs text-slate-500 mb-4"></p>
+            <button onclick="tutupModalQR()" class="w-full bg-slate-200 text-slate-700 py-2 rounded-xl text-xs font-bold hover:bg-slate-300 cursor-pointer">Tutup</button>
+        </div>
     </div>
 
     <script>
@@ -303,7 +315,7 @@
                     <td class="py-3 px-4 text-slate-600">${s.peminatan}</td>
                     <td class="py-3 px-4 text-slate-600">${s.rombel}</td>
                     <td class="py-3 px-4 text-center">
-                        <button onclick="bukaKartuQR('${s.nis}', '${s.nama.replace(/'/g, "\\'")}', '${s.rombel}')" class="bg-amber-500 text-slate-900 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-amber-400 shadow-sm cursor-pointer">
+                        <button type="button" onclick="bukaKartuQR('${s.nis}', '${s.nama.replace(/'/g, "\\'")}', '${s.rombel}')" class="bg-amber-500 text-slate-900 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-amber-400 shadow-sm cursor-pointer">
                             <i class="fa-solid fa-qrcode mr-1"></i> Cetak Kartu
                         </button>
                     </td>
@@ -314,7 +326,7 @@
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="font-bold text-lg text-slate-800">Daftar Siswa Sanggar Parikesit</h3>
-                        <button onclick="tambahSiswaModal()" class="bg-[#7B1113] text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-900 shadow cursor-pointer">Tambah Siswa Baru</button>
+                        <button type="button" onclick="tambahSiswaModal()" class="bg-[#7B1113] text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-900 shadow cursor-pointer">Tambah Siswa Baru</button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse text-sm">
@@ -329,16 +341,6 @@
                             </thead>
                             <tbody>${rows}</tbody>
                         </table>
-                    </div>
-                </div>
-                <div id="qr-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50">
-                    <div class="bg-white p-6 rounded-2xl shadow-xl w-80 text-center">
-                        <h4 class="font-bold text-slate-800 mb-1">KARTU ANGGOTA</h4>
-                        <p class="text-xs text-slate-500 mb-4">Sanggar Seni Parikesit</p>
-                        <div id="qrcode-box" class="flex justify-center mb-4 p-4 bg-slate-50 rounded-xl border border-slate-200"></div>
-                        <h5 id="modal-nama" class="font-bold text-slate-900 text-base"></h5>
-                        <p id="modal-nis" class="text-xs text-slate-500 mb-4"></p>
-                        <button onclick="document.getElementById('qr-modal').classList.add('hidden')" class="w-full bg-slate-200 text-slate-700 py-2 rounded-xl text-xs font-bold hover:bg-slate-300 cursor-pointer">Tutup</button>
                     </div>
                 </div>
             `;
@@ -361,15 +363,29 @@
 
         function bukaKartuQR(nis, nama, rombel) {
             const modal = document.getElementById('qr-modal');
-            if(modal) modal.classList.remove('hidden');
-            modal.style.display = 'flex';
+            if(modal) {
+                modal.classList.remove('hidden');
+                modal.style.display = 'flex';
+            }
             
-            document.getElementById('modal-nama').innerText = nama;
-            document.getElementById('modal-nis').innerText = `NIS: ${nis} • ${rombel}`;
+            const namaEl = document.getElementById('modal-nama');
+            const nisEl = document.getElementById('modal-nis');
+            if(namaEl) namaEl.innerText = nama;
+            if(nisEl) nisEl.innerText = `NIS: ${nis} • ${rombel}`;
             
             const qrBox = document.getElementById('qrcode-box');
-            qrBox.innerHTML = "";
-            new QRCode(qrBox, { text: String(nis), width: 128, height: 128 });
+            if(qrBox) {
+                qrBox.innerHTML = "";
+                new QRCode(qrBox, { text: String(nis), width: 128, height: 128 });
+            }
+        }
+
+        function tutupModalQR() {
+            const modal = document.getElementById('qr-modal');
+            if(modal) {
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+            }
         }
 
         function renderScanAbsensi() {
@@ -378,7 +394,7 @@
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                         <h3 class="font-bold text-lg text-slate-800 mb-4">Scan QR Barcode Kamera</h3>
                         <div id="reader" class="w-full bg-slate-100 rounded-xl overflow-hidden mb-4 border border-slate-200" style="min-height:250px;"></div>
-                        <button onclick="mulaiKamera()" class="w-full bg-[#7B1113] text-white py-3 rounded-xl font-bold text-sm shadow hover:bg-red-900 cursor-pointer">Aktifkan Kamera Scanner</button>
+                        <button type="button" onclick="mulaiKamera()" class="w-full bg-[#7B1113] text-white py-3 rounded-xl font-bold text-sm shadow hover:bg-red-900 cursor-pointer">Aktifkan Kamera Scanner</button>
                     </div>
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                         <h3 class="font-bold text-lg text-slate-800 mb-4">Log Kehadiran Tersimpan</h3>
@@ -453,7 +469,7 @@
                     <td class="py-3 px-4 font-bold text-slate-900">${s.nama}</td>
                     <td class="py-3 px-4 text-slate-600">${s.peminatan}</td>
                     <td class="py-3 px-4 text-center">
-                        <button onclick="downloadRaportPDF('${s.nis}')" class="bg-[#7B1113] text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-900 shadow-sm cursor-pointer">
+                        <button type="button" onclick="downloadRaportPDF('${s.nis}')" class="bg-[#7B1113] text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-900 shadow-sm cursor-pointer">
                             <i class="fa-solid fa-file-pdf mr-1"></i> Download PDF
                         </button>
                     </td>
