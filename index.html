@@ -2760,7 +2760,41 @@ onst filterSikapEl = document.getElementById('filterRombelSikap');
                     </tr>
                 `;
             }
+// Render Tabel Sikap (Afektif) pada Raport
+            const sk = normalizeSikap(s.sikap);
+            const sikapAkhir = getPredikatSikapAkhir(sk);
+            const sikapRows = [
+                { key: 'disiplin', val: sk.disiplin },
+                { key: 'tanggungJawab', val: sk.tanggungJawab },
+                { key: 'sopanSantun', val: sk.sopanSantun },
+                { key: 'kepedulian', val: sk.kepedulian },
+                { key: 'percayaDiri', val: sk.percayaDiri }
+            ];
 
+            const tbodySikap = document.getElementById('rapTableSikap');
+            if (tbodySikap) {
+                tbodySikap.innerHTML = sikapRows.map((row, i) => {
+                    const meta = RUBRIK_SIKAP_DATA[row.key];
+                    return `
+                        <tr>
+                            <td class="p-2 border-r border-slate-300 text-center font-semibold text-slate-500">${i + 1}</td>
+                            <td class="p-2 border-r border-slate-300 font-bold text-slate-800">${meta.label}</td>
+                            <td class="p-2 border-r border-slate-300 text-center font-bold text-[#7B1113]">${getSikapLabelText(row.val)}</td>
+                            <td class="p-2 text-[11px] text-slate-600 leading-snug">${meta[row.val]}</td>
+                        </tr>
+                    `;
+                }).join('') + `
+                    <tr class="bg-slate-100 font-bold">
+                        <td colspan="2" class="p-2.5 border-r border-slate-300 text-slate-900">PREDIKAT SIKAP KESELURUHAN</td>
+                        <td colspan="2" class="p-2.5 text-emerald-800">${sikapAkhir.label}</td>
+                    </tr>
+                `;
+            }
+
+            const catatanEl = document.getElementById('rapCatatanSikap');
+            if (catatanEl) {
+                catatanEl.textContent = sk.catatan ? `Catatan Pembina: "${sk.catatan}"` : '';
+            }
             const sigPembina = document.getElementById('rapSignaturePembina');
             const sigNama = document.getElementById('rapSignatureNama');
             if (sigPembina) sigPembina.textContent = `Guru Pembina ${r.nama || 'Rombel'}`;
