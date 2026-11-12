@@ -2730,6 +2730,9 @@
             const aside = document.querySelector('aside');
             if (aside) aside.classList.toggle('hidden');
         }
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW skip:', err));
+        }
     </script>
 </body>
 </html>
