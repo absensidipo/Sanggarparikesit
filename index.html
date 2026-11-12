@@ -1659,7 +1659,7 @@
             `).join('');
         }
 
-        // --- CAMERA SCANNER INTEGRATION ---
+       // --- CAMERA SCANNER INTEGRATION ---
         let isProcessingScan = false;
         let lastWarningCode = '';
         let lastWarningTime = 0;
@@ -1716,7 +1716,7 @@
                             const tgl = getActiveAbsensiTanggal();
                             const siswaObj = findSiswaByCode(scannedCode);
 
-                            // Jika siswa sudah ada di list absensi hari ini, langsung kunci & tolak scan kamera
+                            // Kunci: Jika siswa sudah masuk list absensi hari ini, tolak scan ulang
                             if (siswaObj) {
                                 const existingLog = getExistingAbsensiLog(siswaObj.id, tgl);
                                 if (existingLog) {
@@ -1846,7 +1846,6 @@
                 s.logs.push({ tanggal: tgl, waktu: timeNow, status: 'Hadir' });
                 absensiLogs.unshift({ waktu: timeNow, tanggal: tgl, nis: s.id, nama: s.nama, status: 'Hadir' });
 
-                // Simpan ke LocalStorage & langsung kirim ke JSONBin.io
                 saveLocalData();
 
                 resCard.className = 'p-4 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-900 text-xs space-y-1';
@@ -1861,91 +1860,6 @@
             } finally {
                 isProcessingScan = false;
             }
-        }
-
-        // --- SCAN QR BARCODE ABSENSI LOGIC ---
-        function openQrCard(id) {
-            const s = siswaList.find(x => x.id === id);
-            if (!s) return;
-            const r = rombelList.find(x => x.id === s.rombelId) || {};
-
-            document.getElementById('qrCardNisCode').textContent = s.id;
-            document.getElementById('qrCardNama').textContent = s.nama;
-            document.getElementById('qrCardRombel').textContent = `${r.nama || '-'} (${r.peminatan || '-'})`;
-
-            const qrContainer = document.getElementById('qrcodeCanvas');
-            if (qrContainer) {
-                qrContainer.innerHTML = '';
-                new QRCode(qrContainer, {
-                    text: s.id,
-                    width: 128,
-                    height: 128,
-                    colorDark : "#000000",
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.H
-                });
-            }
-
-            toggleModal('modalQrCard');
-        }
-
-        function prosesScanAbsensi() {
-            const inputNis = document.getElementById('scanInputNis').value.trim();
-            const tgl = document.getElementById('absensiTanggal').value;
-            if (!inputNis) return;
-
-            const s = siswaList.find(x => x.id.toLowerCase() === inputNis.toLowerCase() || x.nama.toLowerCase().includes(inputNis.toLowerCase()));
-            const resCard = document.getElementById('scanResultCard');
-            const resName = document.getElementById('scanResName');
-            const resInfo = document.getElementById('scanResInfo');
-
-            if (!s) {
-                resCard.className = 'p-4 rounded-xl border bg-rose-50 border-rose-200 text-rose-900 text-xs space-y-1';
-                resName.textContent = 'Siswa Tidak Ditemukan!';
-                resInfo.textContent = `NIS/Barcode "${inputNis}" tidak terdaftar dalam sistem.`;
-                resCard.classList.remove('hidden');
-                return;
-            }
-
-            if (currentUserRole === 'Pembina') {
-                const myRombelIds = rombelList.filter(r => r.pembinaId === currentPembinaId).map(r => r.id);
-                if (!myRombelIds.includes(s.rombelId)) {
-                    resCard.className = 'p-4 rounded-xl border bg-amber-50 border-amber-200 text-amber-900 text-xs space-y-1';
-                    resName.textContent = 'Akses Ditolak!';
-                    resInfo.textContent = `${s.nama} bukan merupakan siswa binaan rombel Anda.`;
-                    resCard.classList.remove('hidden');
-                    return;
-                }
-            }
-
-            // Validasi: Cegah absensi ganda jika siswa sudah tercatat hadir pada tanggal yang sama
-            const sudahAbsen = absensiLogs.find(log => log.nis === s.id && log.tanggal === tgl);
-            if (sudahAbsen) {
-                resCard.className = 'p-4 rounded-xl border bg-amber-50 border-amber-200 text-amber-900 text-xs space-y-1';
-                resName.textContent = `⚠️ Sudah Absen Hari Ini: ${s.nama}`;
-                resInfo.textContent = `NIS: ${s.id} sudah tercatat hadir pada tanggal ${tgl} pukul ${sudahAbsen.waktu}.`;
-                resCard.classList.remove('hidden');
-                document.getElementById('scanInputNis').value = '';
-                showToast(`${s.nama} sudah melakukan absensi hari ini!`, 'warning');
-                return;
-            }
-
-            s.absensi.hadir = (s.absensi.hadir || 0) + 1;
-            const timeNow = new Date().toLocaleTimeString('id-ID');
-            absensiLogs.unshift({ waktu: timeNow, tanggal: tgl, nis: s.id, nama: s.nama, status: 'Hadir' });
-
-            // Simpan ke LocalStorage & langsung kirim ke JSONBin.io
-            saveLocalData();
-
-            resCard.className = 'p-4 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-900 text-xs space-y-1';
-            resName.textContent = `✅ Berhasil Absen: ${s.nama}`;
-            resInfo.textContent = `NIS: ${s.id} | Tanggal: ${tgl} | Pukul: ${timeNow}`;
-            resCard.classList.remove('hidden');
-
-            document.getElementById('scanInputNis').value = '';
-            renderLogAbsensi();
-            renderRekapAbsensiTable();
-            showToast(`Presensi ${s.nama} tercatat & tersimpan ke Cloud!`);
         }
 
         // --- RAPORT DAFTAR SISWA & CETAK / PDF ---
