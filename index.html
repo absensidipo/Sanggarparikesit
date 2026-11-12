@@ -1866,6 +1866,7 @@
             const titleEl = document.getElementById('pageTitle');
             if (titleEl) titleEl.textContent = titleMap[tabId] || 'Sanggar Parikesit';
             if (tabId === 'rekapabsensi') renderRekapAbsensiTable();
+            if (tabId === 'sikap') renderSikapTable();
             if (tabId === 'raport') renderRaportSiswaList();
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
