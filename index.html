@@ -1653,6 +1653,8 @@
 
         // --- CAMERA SCANNER INTEGRATION ---
         function startCameraScanner() {
+            const sudahAbsen = absensiLogs.find(log => log.nis === s.id && log.tanggal === tgl);
+   if (sudahAbsen) { ... return; }
             const btnStart = document.getElementById('btnStartCam');
             const btnStop = document.getElementById('btnStopCam');
 
