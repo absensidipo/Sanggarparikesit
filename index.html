@@ -565,10 +565,12 @@
                                     <th class="p-3 border border-red-950">NIS</th>
                                     <th class="p-3 border border-red-950">Nama Siswa</th>
                                     <th class="p-3 border border-red-950">Rombel</th>
-                                    <th class="p-3 border border-red-950 text-center w-24">Hadir</th>
-                                    <th class="p-3 border border-red-950 text-center w-24">Izin/Sakit</th>
-                                    <th class="p-3 border border-red-950 text-center w-24">Alpa</th>
-                                    <th class="p-3 border border-red-950 text-center w-28">Total Hadir (%)</th>
+                                    <th class="p-3 border border-red-950 text-center w-20">Hadir</th>
+                                    <th class="p-3 border border-red-950 text-center w-20">Izin</th>
+                                    <th class="p-3 border border-red-950 text-center w-20">Sakit</th>
+                                    <th class="p-3 border border-red-950 text-center w-20">Alpha</th>
+                                    <th class="p-3 border border-red-950 text-center w-24">Hadir (%)</th>
+                                    <th class="p-3 border border-red-950 text-right w-20 no-print">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody id="tableRekapAbsenBody" class="divide-y divide-slate-200">
@@ -794,22 +796,26 @@
                         </div>
                     </div>
 
-                    <!-- Tabel Capaian Kompetensi Seni -->
-                    <div class="overflow-hidden rounded-xl border border-slate-300">
-                        <table class="w-full text-left border-collapse text-xs">
-                            <thead>
-                                <tr class="bg-[#7B1113] text-white uppercase tracking-wider">
-                                    <th class="p-3 border-r border-red-900">Aspek Kompetensi Seni</th>
-                                    <th class="p-3 border-r border-red-900 text-center w-24">Nilai Angka</th>
-                                    <th class="p-3 w-40">Predikat Capaian</th>
-                                </tr>
-                            </thead>
-                            <tbody id="rapTableNilai" class="divide-y divide-slate-300">
-                                <!-- Dynamic Nilai Render -->
-                            </tbody>
-                        </table>
+                    <!-- A. Tabel Capaian Kompetensi Seni -->
+                    <div class="space-y-1.5">
+                        <h4 class="text-xs font-extrabold text-[#7B1113] uppercase tracking-wider">A. Capaian Kompetensi Seni</h4>
+                        <div class="overflow-hidden rounded-xl border border-slate-300">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr class="bg-[#7B1113] text-white uppercase tracking-wider">
+                                        <th class="p-3 border-r border-red-900">Aspek Kompetensi Seni</th>
+                                        <th class="p-3 border-r border-red-900 text-center w-24">Nilai Angka</th>
+                                        <th class="p-3 w-40">Predikat Capaian</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="rapTableNilai" class="divide-y divide-slate-300">
+                                    <!-- Dynamic Nilai Render -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                      <!-- B. Tabel Penilaian Sikap (Afektif) -->
+
+                    <!-- B. Tabel Penilaian Sikap (Afektif) -->
                     <div class="space-y-1.5">
                         <h4 class="text-xs font-extrabold text-[#7B1113] uppercase tracking-wider">B. Penilaian Sikap (Afektif)</h4>
                         <div class="overflow-hidden rounded-xl border border-slate-300">
@@ -879,7 +885,6 @@
                 </button>
             </div>
         </div>
-    </div>
     </div>
 
     <!-- MODAL JSONBIN.IO DATABASE CLOUD CONFIG -->
@@ -1125,7 +1130,46 @@
             </form>
         </div>
     </div>
-        <!-- MODAL 6: Detail Penilaian Sikap (Afektif) & Catatan Pembina -->
+
+    <!-- MODAL 5: Form Edit Rekap Kehadiran (Hadir / Izin / Sakit / Alpha) -->
+    <div id="modalEditRekap" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden no-print">
+        <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl border border-slate-100 m-4">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h3 class="font-bold text-lg text-slate-800">Ubah Rekap Kehadiran Siswa</h3>
+                    <p id="rekapEditStudentName" class="text-xs text-red-900 font-semibold mt-0.5">-</p>
+                </div>
+                <button onclick="toggleModal('modalEditRekap')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form onsubmit="handleSaveRekapAbsensi(event)" class="space-y-4">
+                <input type="hidden" id="rekapEditStudentId">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-emerald-700 mb-1">Jumlah Hadir</label>
+                        <input type="number" id="inputRekapHadir" min="0" required class="w-full border border-slate-200 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-emerald-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-sky-700 mb-1">Jumlah Izin</label>
+                        <input type="number" id="inputRekapIzin" min="0" required class="w-full border border-slate-200 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-sky-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-amber-700 mb-1">Jumlah Sakit</label>
+                        <input type="number" id="inputRekapSakit" min="0" required class="w-full border border-slate-200 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-amber-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-rose-700 mb-1">Jumlah Alpha</label>
+                        <input type="number" id="inputRekapAlpha" min="0" required class="w-full border border-slate-200 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-rose-600 focus:outline-none">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 pt-3">
+                    <button type="button" onclick="toggleModal('modalEditRekap')" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-medium rounded-xl hover:bg-slate-50">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-[#7B1113] hover:bg-red-900 text-white text-xs font-medium rounded-xl">Simpan Rekap</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 6: Detail Penilaian Sikap (Afektif) & Catatan Pembina -->
     <div id="modalSikap" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden no-print overflow-y-auto">
         <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl border border-slate-100 m-4 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
@@ -1270,6 +1314,9 @@
                 SB: 'Berani berpendapat, bertanya, atau tampil di depan umum dengan tenang, jelas, dan tanpa ragu-ragu.',
                 B: 'Berani berpendapat atau tampil jika ditunjuk atau mendapat dorongan, meski terlihat sedikit gugup di awal.',
                 C: 'Masih terlihat ragu-ragu, malu-malu, atau cenderung pasif dan menghindari kesempatan untuk tampil atau berbicara.'
+            }
+        };
+
         // Initial Data Pembina Guru
         let pembinaList = JSON.parse(localStorage.getItem('parikesit_pembina')) || [
             { id: 'PBM-001', nama: 'Ki Sastro Utomo', bidang: 'Seni Karawitan', telp: '081234567890' },
@@ -1293,7 +1340,18 @@
         ];
 
         let absensiLogs = JSON.parse(localStorage.getItem('parikesit_absensi_logs') || '[]');
-         function normalizeSikap(sikap) {
+
+        function normalizeAbsensi(abs) {
+            const src = abs || {};
+            return {
+                hadir: Number(src.hadir) || 0,
+                izin: Number(src.izin) || 0,
+                sakit: Number(src.sakit) || 0,
+                alpa: Number(src.alpa) || 0
+            };
+        }
+
+        function normalizeSikap(sikap) {
             const validGrades = ['SB', 'B', 'C'];
             const src = sikap || {};
             return {
@@ -1592,6 +1650,7 @@
                 initAppData();
                 renderLogAbsensi();
                 renderRekapAbsensiTable();
+                renderSikapTable();
                 renderRaportPreview();
 
                 updateCloudStatusBadge('JSONBin Terhubung ✅', true);
@@ -1772,8 +1831,11 @@
             renderRombelTable();
             populatePembinaSelect();
             populateRombelSelects();
+            populateSiswaDatalist();
             renderSiswaTable();
+            renderBelumAbsenList();
             renderNilaiTable();
+            renderSikapTable();
             renderRaportSiswaList();
         }
 
@@ -1865,6 +1927,11 @@
             };
             const titleEl = document.getElementById('pageTitle');
             if (titleEl) titleEl.textContent = titleMap[tabId] || 'Sanggar Parikesit';
+            if (tabId === 'absensi') {
+                populateSiswaDatalist();
+                renderLogAbsensi();
+                renderBelumAbsenList();
+            }
             if (tabId === 'rekapabsensi') renderRekapAbsensiTable();
             if (tabId === 'sikap') renderSikapTable();
             if (tabId === 'raport') renderRaportSiswaList();
@@ -1942,14 +2009,8 @@
                 filterRekapEl.value = stillExists ? prevSelected : 'ALL';
             }
 
-            if (typeof updateResetAbsensiButtonState === 'function') {
-                updateResetAbsensiButtonState();
-            }
-            if (typeof updateModalRombelDropdown === 'function') {
-                updateModalRombelDropdown();
-            }
-        }
-onst filterSikapEl = document.getElementById('filterRombelSikap');
+            // 3. Populate Dropdown Filter Rombel pada Halaman Penilaian Sikap
+            const filterSikapEl = document.getElementById('filterRombelSikap');
             if (filterSikapEl) {
                 const prevSikap = filterSikapEl.value || 'ALL';
                 let sikapRombels = rombelList;
@@ -1963,6 +2024,47 @@ onst filterSikapEl = document.getElementById('filterRombelSikap');
                 const stillExists = prevSikap === 'ALL' || sikapRombels.some(r => r.id === prevSikap);
                 filterSikapEl.value = stillExists ? prevSikap : 'ALL';
             }
+
+            // 4. Populate Dropdown Filter Rombel pada Input Cepat Belum Absen
+            const filterBelumEl = document.getElementById('filterRombelBelumAbsen');
+            if (filterBelumEl) {
+                const prevBelum = filterBelumEl.value || 'ALL';
+                let belumRombels = rombelList;
+                if (currentUserRole === 'Pembina') {
+                    belumRombels = belumRombels.filter(r => r.pembinaId === currentPembinaId);
+                }
+                let belumHtml = `<option value="ALL">${currentUserRole === 'Pembina' ? 'Semua Rombel Binaan' : 'Semua Rombel'}</option>`;
+                belumHtml += belumRombels.map(r => `<option value="${r.id}">${r.nama}</option>`).join('');
+                filterBelumEl.innerHTML = belumHtml;
+
+                const stillExists = prevBelum === 'ALL' || belumRombels.some(r => r.id === prevBelum);
+                filterBelumEl.value = stillExists ? prevBelum : 'ALL';
+            }
+
+            if (typeof updateResetAbsensiButtonState === 'function') {
+                updateResetAbsensiButtonState();
+            }
+            if (typeof updateModalRombelDropdown === 'function') {
+                updateModalRombelDropdown();
+            }
+        }
+
+        function populateSiswaDatalist() {
+            const dl = document.getElementById('datalistSiswaAbsen');
+            if (!dl) return;
+
+            let sourceList = siswaList;
+            if (currentUserRole === 'Pembina') {
+                const myRombelIds = rombelList.filter(r => r.pembinaId === currentPembinaId).map(r => r.id);
+                sourceList = sourceList.filter(s => myRombelIds.includes(s.rombelId));
+            }
+
+            dl.innerHTML = sourceList.map(s => {
+                const r = rombelList.find(x => x.id === s.rombelId) || {};
+                return `<option value="${s.id}">${s.nama} (${r.nama || '-'})</option>`;
+            }).join('');
+        }
+
         function updateModalRombelDropdown() {
             const pemModal = document.getElementById('modalPeminatanSiswa')?.value || 'Seni Karawitan';
             const tktModal = document.getElementById('modalTingkatSiswa')?.value || 'Tingkat Dasar (Pemula)';
@@ -2066,45 +2168,6 @@ onst filterSikapEl = document.getElementById('filterRombelSikap');
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
-        function deleteAbsensiLog(logIndex) {
-            const targetLog = absensiLogs[logIndex];
-            if (!targetLog) return;
-
-            if (currentUserRole === 'Pembina') {
-                const siswaObj = siswaList.find(x => x.id === targetLog.nis);
-                const myRombelIds = rombelList.filter(r => r.pembinaId === currentPembinaId).map(r => r.id);
-                if (siswaObj && !myRombelIds.includes(siswaObj.rombelId)) {
-                    showToast('Anda tidak memiliki akses menghapus absensi siswa rombel lain.', 'error');
-                    return;
-                }
-            }
-
-            customConfirm(`Yakin ingin menghapus data absensi ${targetLog.nama} (${targetLog.tanggal} pukul ${targetLog.waktu})?`, () => {
-                absensiLogs.splice(logIndex, 1);
-
-                const siswaObj = siswaList.find(x => x.id === targetLog.nis);
-                if (siswaObj) {
-                    if (siswaObj.absensi && typeof siswaObj.absensi.hadir === 'number') {
-                        siswaObj.absensi.hadir = Math.max(0, siswaObj.absensi.hadir - 1);
-                    }
-                    if (Array.isArray(siswaObj.logs)) {
-                        const subIdx = siswaObj.logs.findIndex(item => item.tanggal === targetLog.tanggal && item.waktu === targetLog.waktu);
-                        if (subIdx !== -1) {
-                            siswaObj.logs.splice(subIdx, 1);
-                        }
-                    }
-                }
-
-                lastWarningCode = '';
-                const resCard = document.getElementById('scanResultCard');
-                if (resCard) resCard.classList.add('hidden');
-
-                saveLocalData();
-                renderLogAbsensi();
-                renderRekapAbsensiTable();
-                showToast(`Absensi ${targetLog.nama} berhasil dihapus. Siswa kini dapat scan ulang.`);
-            });
-        }
         // --- EFEK SUARA SCAN QR (BERHASIL & ERROR) ---
         let scanAudioCtx = null;
 
@@ -2183,6 +2246,10 @@ onst filterSikapEl = document.getElementById('filterRombelSikap');
             return today;
         }
 
+        function onAbsensiTanggalChange() {
+            renderBelumAbsenList();
+        }
+
         function findSiswaByCode(rawCode) {
             const cleanCode = String(rawCode || '').trim().toLowerCase();
             if (!cleanCode) return null;
@@ -2203,6 +2270,7 @@ onst filterSikapEl = document.getElementById('filterRombelSikap');
         }
 
         function startCameraScanner() {
+            initScanAudio();
             const btnStart = document.getElementById('btnStartCam');
             const btnStop = document.getElementById('btnStopCam');
 
@@ -2223,19 +2291,22 @@ onst filterSikapEl = document.getElementById('filterRombelSikap');
                             if (!scannedCode) return;
 
                             document.getElementById('scanInputNis').value = scannedCode;
-                            prosesScanAbsensi();
+                            prosesScanAbsensi(false);
                         },
                         (errorMessage) => {}
                     ).then(() => {
                         btnStart.classList.add('hidden');
                         btnStop.classList.remove('hidden');
                     }).catch(err => {
+                        playScanSound('error');
                         showToast("Gagal mengaktifkan kamera: " + err, 'error');
                     });
                 } else {
+                    playScanSound('error');
                     showToast("Kamera tidak ditemukan pada perangkat ini!", 'warning');
                 }
             }).catch(err => {
+                playScanSound('error');
                 showToast("Izin kamera ditolak atau tidak didukung!", 'error');
             });
         }
@@ -2249,24 +2320,27 @@ onst filterSikapEl = document.getElementById('filterRombelSikap');
             }
         }
 
-        function tampilkanStatusSudahAbsen(siswaObj, tgl, waktuTercatat) {
+        function tampilkanStatusSudahAbsen(siswaObj, tgl, existingLog) {
             const resCard = document.getElementById('scanResultCard');
             const resName = document.getElementById('scanResName');
             const resInfo = document.getElementById('scanResInfo');
+            const statusTercatat = existingLog.status || 'Hadir';
 
             if (resCard && resName && resInfo) {
                 resCard.className = 'p-4 rounded-xl border bg-amber-50 border-amber-200 text-amber-900 text-xs space-y-1';
-                resName.textContent = `⛔ Sudah Masuk Daftar Absensi: ${siswaObj.nama}`;
-                resInfo.textContent = `NIS: ${siswaObj.id} sudah tercatat hadir pada ${tgl} pukul ${waktuTercatat}. Tidak dapat scan ulang.`;
+                resName.textContent = `⛔ Sudah Tercatat (${statusTercatat}): ${siswaObj.nama}`;
+                resInfo.textContent = `NIS: ${siswaObj.id} sudah tercatat "${statusTercatat}" pada ${tgl} pukul ${existingLog.waktu}. Hapus di log jika ingin mengubah status.`;
                 resCard.classList.remove('hidden');
             }
-            document.getElementById('scanInputNis').value = '';
+            const inputEl = document.getElementById('scanInputNis');
+            if (inputEl) inputEl.value = '';
 
             const now = Date.now();
             if (siswaObj.id !== lastWarningCode || (now - lastWarningTime) > 4000) {
                 lastWarningCode = siswaObj.id;
                 lastWarningTime = now;
-                showToast(`${siswaObj.nama} sudah ada di list absensi hari ini!`, 'warning');
+                playScanSound('error');
+                showToast(`${siswaObj.nama} sudah tercatat (${statusTercatat}) pada tanggal ini!`, 'warning');
             }
         }
 
@@ -2400,15 +2474,86 @@ onst filterSikapEl = document.getElementById('filterRombelSikap');
             showToast(`Gambar kartu QR ${nama} berhasil diunduh!`);
         }
 
-        function prosesScanAbsensi() {
+        function recordPresensiSiswa(siswaObj, statusValue) {
+            const tgl = getActiveAbsensiTanggal();
+            const validStatuses = ['Hadir', 'Izin', 'Sakit', 'Alpha'];
+            const status = validStatuses.includes(statusValue) ? statusValue : 'Hadir';
+
+            const resCard = document.getElementById('scanResultCard');
+            const resName = document.getElementById('scanResName');
+            const resInfo = document.getElementById('scanResInfo');
+
+            if (currentUserRole === 'Pembina') {
+                const myRombelIds = rombelList.filter(r => r.pembinaId === currentPembinaId).map(r => r.id);
+                if (!myRombelIds.includes(siswaObj.rombelId)) {
+                    playScanSound('error');
+                    if (resCard && resName && resInfo) {
+                        resCard.className = 'p-4 rounded-xl border bg-amber-50 border-amber-200 text-amber-900 text-xs space-y-1';
+                        resName.textContent = 'Akses Ditolak!';
+                        resInfo.textContent = `${siswaObj.nama} bukan merupakan siswa binaan rombel Anda.`;
+                        resCard.classList.remove('hidden');
+                    }
+                    return false;
+                }
+            }
+
+            const sudahAbsen = getExistingAbsensiLog(siswaObj.id, tgl);
+            if (sudahAbsen) {
+                tampilkanStatusSudahAbsen(siswaObj, tgl, sudahAbsen);
+                return false;
+            }
+
+            siswaObj.absensi = normalizeAbsensi(siswaObj.absensi);
+            if (!Array.isArray(siswaObj.logs)) siswaObj.logs = [];
+
+            if (status === 'Hadir') {
+                siswaObj.absensi.hadir += 1;
+            } else if (status === 'Izin') {
+                siswaObj.absensi.izin += 1;
+            } else if (status === 'Sakit') {
+                siswaObj.absensi.sakit += 1;
+            } else if (status === 'Alpha') {
+                siswaObj.absensi.alpa += 1;
+            }
+
+            const timeNow = new Date().toLocaleTimeString('id-ID');
+            siswaObj.logs.push({ tanggal: tgl, waktu: timeNow, status });
+            absensiLogs.unshift({ waktu: timeNow, tanggal: tgl, nis: siswaObj.id, nama: siswaObj.nama, status });
+
+            saveLocalData();
+
+            if (resCard && resName && resInfo) {
+                const cardColorMap = {
+                    Hadir: 'p-4 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-900 text-xs space-y-1',
+                    Izin: 'p-4 rounded-xl border bg-sky-50 border-sky-200 text-sky-900 text-xs space-y-1',
+                    Sakit: 'p-4 rounded-xl border bg-amber-50 border-amber-200 text-amber-900 text-xs space-y-1',
+                    Alpha: 'p-4 rounded-xl border bg-rose-50 border-rose-200 text-rose-900 text-xs space-y-1'
+                };
+                resCard.className = cardColorMap[status];
+                resName.textContent = `✅ Tercatat ${status}: ${siswaObj.nama}`;
+                resInfo.textContent = `NIS: ${siswaObj.id} | Status: ${status} | Tanggal: ${tgl} | Pukul: ${timeNow}`;
+                resCard.classList.remove('hidden');
+            }
+
+            playScanSound('success');
+            renderLogAbsensi();
+            renderBelumAbsenList();
+            renderRekapAbsensiTable();
+            showToast(`Status "${status}" untuk ${siswaObj.nama} tercatat & tersimpan!`);
+            return true;
+        }
+
+        function prosesScanAbsensi(useManualStatus = false) {
             if (isProcessingScan) return;
             isProcessingScan = true;
 
             try {
                 const inputEl = document.getElementById('scanInputNis');
                 const inputNis = inputEl ? inputEl.value.trim() : '';
-                const tgl = getActiveAbsensiTanggal();
                 if (!inputNis) return;
+
+                const statusEl = document.getElementById('scanInputStatus');
+                const chosenStatus = (useManualStatus && statusEl) ? statusEl.value : 'Hadir';
 
                 const s = findSiswaByCode(inputNis);
                 const resCard = document.getElementById('scanResultCard');
@@ -2416,60 +2561,173 @@ onst filterSikapEl = document.getElementById('filterRombelSikap');
                 const resInfo = document.getElementById('scanResInfo');
 
                 if (!s) {
+                    playScanSound('error');
                     if (resCard && resName && resInfo) {
                         resCard.className = 'p-4 rounded-xl border bg-rose-50 border-rose-200 text-rose-900 text-xs space-y-1';
                         resName.textContent = 'Siswa Tidak Ditemukan!';
-                        resInfo.textContent = `NIS/Barcode "${inputNis}" tidak terdaftar dalam sistem.`;
+                        resInfo.textContent = `NIS/Nama "${inputNis}" tidak terdaftar dalam sistem.`;
                         resCard.classList.remove('hidden');
                     }
                     return;
                 }
 
-                if (currentUserRole === 'Pembina') {
-                    const myRombelIds = rombelList.filter(r => r.pembinaId === currentPembinaId).map(r => r.id);
-                    if (!myRombelIds.includes(s.rombelId)) {
-                        if (resCard && resName && resInfo) {
-                            resCard.className = 'p-4 rounded-xl border bg-amber-50 border-amber-200 text-amber-900 text-xs space-y-1';
-                            resName.textContent = 'Akses Ditolak!';
-                            resInfo.textContent = `${s.nama} bukan merupakan siswa binaan rombel Anda.`;
-                            resCard.classList.remove('hidden');
-                        }
-                        return;
-                    }
+                const ok = recordPresensiSiswa(s, chosenStatus);
+                if (ok && inputEl) {
+                    inputEl.value = '';
                 }
-
-                const sudahAbsen = getExistingAbsensiLog(s.id, tgl);
-                if (sudahAbsen) {
-                    tampilkanStatusSudahAbsen(s, tgl, sudahAbsen.waktu);
-                    return;
-                }
-
-                if (!s.absensi) s.absensi = { hadir: 0, izin: 0, alpa: 0 };
-                if (!Array.isArray(s.logs)) s.logs = [];
-
-                const timeNow = new Date().toLocaleTimeString('id-ID');
-                s.absensi.hadir = (s.absensi.hadir || 0) + 1;
-                s.logs.push({ tanggal: tgl, waktu: timeNow, status: 'Hadir' });
-                absensiLogs.unshift({ waktu: timeNow, tanggal: tgl, nis: s.id, nama: s.nama, status: 'Hadir' });
-
-                saveLocalData();
-
-                if (resCard && resName && resInfo) {
-                    resCard.className = 'p-4 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-900 text-xs space-y-1';
-                    resName.textContent = `✅ Berhasil Absen: ${s.nama}`;
-                    resInfo.textContent = `NIS: ${s.id} | Tanggal: ${tgl} | Pukul: ${timeNow}`;
-                    resCard.classList.remove('hidden');
-                }
-
-                if (inputEl) inputEl.value = '';
-                renderLogAbsensi();
-                renderRekapAbsensiTable();
-                showToast(`Presensi ${s.nama} tercatat & tersimpan ke Cloud!`);
             } finally {
                 isProcessingScan = false;
             }
         }
-// --- PENILAIAN SIKAP (AFEKTIF) ---
+
+        function quickMarkAbsensi(siswaId, statusValue) {
+            const s = siswaList.find(x => x.id === siswaId);
+            if (!s) return;
+            recordPresensiSiswa(s, statusValue);
+        }
+
+        function renderBelumAbsenList() {
+            const tbody = document.getElementById('tableBelumAbsenBody');
+            if (!tbody) return;
+
+            const tgl = getActiveAbsensiTanggal();
+            const filterRombel = document.getElementById('filterRombelBelumAbsen')?.value || 'ALL';
+
+            let sourceList = siswaList;
+            if (currentUserRole === 'Pembina') {
+                const myRombelIds = rombelList.filter(r => r.pembinaId === currentPembinaId).map(r => r.id);
+                sourceList = sourceList.filter(s => myRombelIds.includes(s.rombelId));
+            }
+            if (filterRombel !== 'ALL') {
+                sourceList = sourceList.filter(s => s.rombelId === filterRombel);
+            }
+
+            const belumList = sourceList.filter(s => !getExistingAbsensiLog(s.id, tgl));
+
+            if (belumList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="p-3 text-center text-emerald-700 font-medium">Semua siswa pada rombel ini sudah tercatat presensinya pada ${tgl}.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = belumList.map(s => {
+                const r = rombelList.find(x => x.id === s.rombelId) || {};
+                return `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-2">
+                            <p class="font-bold text-slate-800">${s.nama}</p>
+                            <p class="text-[10px] text-[#7B1113] font-semibold">${s.id}</p>
+                        </td>
+                        <td class="p-2 text-slate-500">${r.nama || '-'}</td>
+                        <td class="p-2 text-right whitespace-nowrap space-x-1">
+                            <button onclick="quickMarkAbsensi('${s.id}', 'Izin')" class="px-2 py-1 bg-sky-100 hover:bg-sky-200 text-sky-800 rounded-lg font-bold text-[10px] transition">Izin</button>
+                            <button onclick="quickMarkAbsensi('${s.id}', 'Sakit')" class="px-2 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg font-bold text-[10px] transition">Sakit</button>
+                            <button onclick="quickMarkAbsensi('${s.id}', 'Alpha')" class="px-2 py-1 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg font-bold text-[10px] transition">Alpha</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function getStatusBadgeHtml(statusVal) {
+            const st = statusVal || 'Hadir';
+            if (st === 'Izin') {
+                return `<span class="px-2 py-0.5 bg-sky-100 text-sky-800 rounded font-bold text-[10px]">Izin</span>`;
+            }
+            if (st === 'Sakit') {
+                return `<span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded font-bold text-[10px]">Sakit</span>`;
+            }
+            if (st === 'Alpha') {
+                return `<span class="px-2 py-0.5 bg-rose-100 text-rose-800 rounded font-bold text-[10px]">Alpha</span>`;
+            }
+            return `<span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">Hadir</span>`;
+        }
+
+        function renderLogAbsensi() {
+            const tbody = document.getElementById('tableLogAbsenBody');
+            const badgeCount = document.getElementById('badgeLogCount');
+            if (!tbody) return;
+
+            if (badgeCount) {
+                const cHadir = absensiLogs.filter(x => (x.status || 'Hadir') === 'Hadir').length;
+                const cIzin = absensiLogs.filter(x => x.status === 'Izin').length;
+                const cSakit = absensiLogs.filter(x => x.status === 'Sakit').length;
+                const cAlpha = absensiLogs.filter(x => x.status === 'Alpha').length;
+                badgeCount.textContent = `H:${cHadir} | I:${cIzin} | S:${cSakit} | A:${cAlpha}`;
+            }
+
+            if (absensiLogs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-slate-400">Belum ada catatan presensi hari ini.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = absensiLogs.map((l, idx) => `
+                <tr class="hover:bg-slate-50">
+                    <td class="p-2.5 font-mono text-slate-500">${l.waktu}<br><span class="text-[10px] text-slate-400">${l.tanggal || '-'}</span></td>
+                    <td class="p-2.5 font-bold text-[#7B1113]">${l.nis}</td>
+                    <td class="p-2.5 font-semibold text-slate-800">${l.nama}</td>
+                    <td class="p-2.5">${getStatusBadgeHtml(l.status)}</td>
+                    <td class="p-2.5 text-right">
+                        <button onclick="deleteAbsensiLog(${idx})" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-[11px] font-semibold transition inline-flex items-center gap-1" title="Hapus hasil presensi ini">
+                            <i data-lucide="trash-2" class="w-3 h-3"></i> Hapus
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function deleteAbsensiLog(logIndex) {
+            const targetLog = absensiLogs[logIndex];
+            if (!targetLog) return;
+
+            if (currentUserRole === 'Pembina') {
+                const siswaObj = siswaList.find(x => x.id === targetLog.nis);
+                const myRombelIds = rombelList.filter(r => r.pembinaId === currentPembinaId).map(r => r.id);
+                if (siswaObj && !myRombelIds.includes(siswaObj.rombelId)) {
+                    showToast('Anda tidak memiliki akses menghapus presensi siswa rombel lain.', 'error');
+                    return;
+                }
+            }
+
+            const statusLabel = targetLog.status || 'Hadir';
+            customConfirm(`Yakin ingin menghapus data presensi "${statusLabel}" milik ${targetLog.nama} (${targetLog.tanggal} pukul ${targetLog.waktu})?`, () => {
+                absensiLogs.splice(logIndex, 1);
+
+                const siswaObj = siswaList.find(x => x.id === targetLog.nis);
+                if (siswaObj) {
+                    siswaObj.absensi = normalizeAbsensi(siswaObj.absensi);
+                    if (statusLabel === 'Hadir') {
+                        siswaObj.absensi.hadir = Math.max(0, siswaObj.absensi.hadir - 1);
+                    } else if (statusLabel === 'Izin') {
+                        siswaObj.absensi.izin = Math.max(0, siswaObj.absensi.izin - 1);
+                    } else if (statusLabel === 'Sakit') {
+                        siswaObj.absensi.sakit = Math.max(0, siswaObj.absensi.sakit - 1);
+                    } else if (statusLabel === 'Alpha') {
+                        siswaObj.absensi.alpa = Math.max(0, siswaObj.absensi.alpa - 1);
+                    }
+
+                    if (Array.isArray(siswaObj.logs)) {
+                        const subIdx = siswaObj.logs.findIndex(item => item.tanggal === targetLog.tanggal && item.waktu === targetLog.waktu);
+                        if (subIdx !== -1) {
+                            siswaObj.logs.splice(subIdx, 1);
+                        }
+                    }
+                }
+
+                lastWarningCode = '';
+                const resCard = document.getElementById('scanResultCard');
+                if (resCard) resCard.classList.add('hidden');
+
+                saveLocalData();
+                renderLogAbsensi();
+                renderBelumAbsenList();
+                renderRekapAbsensiTable();
+                showToast(`Data presensi ${targetLog.nama} berhasil dihapus.`);
+            });
+        }
+
+        // --- PENILAIAN SIKAP (AFEKTIF) ---
         function toggleRubrikSikap() {
             const card = document.getElementById('rubrikSikapCard');
             const lbl = document.getElementById('lblToggleRubrikSikap');
@@ -2645,13 +2903,13 @@ onst filterSikapEl = document.getElementById('filterRombelSikap');
         // --- RAPORT DAFTAR SISWA & CETAK / PDF ---
         function renderRaportSiswaList() {
             const tbody = document.getElementById('tableRaportSiswaBody');
-            const search = document.getElementById('searchRaportSiswa')?.value.toLowerCase() || '';
             if (!tbody) return;
 
+            const search = (document.getElementById('searchRaportSiswa')?.value || '').trim().toLowerCase();
             let sourceList = siswaList;
             if (currentUserRole === 'Pembina') {
                 const myRombelIds = rombelList.filter(r => r.pembinaId === currentPembinaId).map(r => r.id);
-                sourceList = siswaList.filter(s => myRombelIds.includes(s.rombelId));
+                sourceList = sourceList.filter(s => myRombelIds.includes(s.rombelId));
             }
 
             const filtered = sourceList.filter(s => s.nama.toLowerCase().includes(search) || s.id.toLowerCase().includes(search));
@@ -2849,14 +3107,14 @@ onst filterSikapEl = document.getElementById('filterRombelSikap');
 
             const targetLabel = rObj ? `rombel "${rObj.nama}"` : 'SEMUA ROMBEL';
             customConfirm(
-                `Yakin ingin mereset seluruh data kehadiran (Hadir, Izin/Sakit, Alpa, dan riwayat scan) untuk ${targetLabel} (${targetSiswa.length} siswa) kembali ke 0?`,
+                `Yakin ingin mereset seluruh data kehadiran (Hadir, Izin, Sakit, Alpha, dan riwayat scan) untuk ${targetLabel} (${targetSiswa.length} siswa) kembali ke 0?`,
                 () => {
                     const targetIds = new Set(targetSiswa.map(s => String(s.id).trim().toLowerCase()));
 
                     // 1. Reset counter kehadiran & logs pada tiap siswa di rombel terpilih
                     siswaList.forEach(s => {
                         if (targetIds.has(String(s.id).trim().toLowerCase())) {
-                            s.absensi = { hadir: 0, izin: 0, alpa: 0 };
+                            s.absensi = { hadir: 0, izin: 0, sakit: 0, alpa: 0 };
                             s.logs = [];
                         }
                     });
@@ -2871,9 +3129,45 @@ onst filterSikapEl = document.getElementById('filterRombelSikap');
                     saveLocalData();
                     renderRekapAbsensiTable();
                     renderLogAbsensi();
+                    renderBelumAbsenList();
                     showToast(`Data absensi ${targetLabel} berhasil direset menjadi 0!`);
                 }
             );
+        }
+
+        function openModalEditRekap(siswaId) {
+            const s = siswaList.find(x => x.id === siswaId);
+            if (!s) return;
+            const r = rombelList.find(x => x.id === s.rombelId) || {};
+            const abs = normalizeAbsensi(s.absensi);
+
+            document.getElementById('rekapEditStudentId').value = s.id;
+            document.getElementById('rekapEditStudentName').textContent = `${s.nama} (${s.id}) - ${r.nama || '-'}`;
+            document.getElementById('inputRekapHadir').value = abs.hadir;
+            document.getElementById('inputRekapIzin').value = abs.izin;
+            document.getElementById('inputRekapSakit').value = abs.sakit;
+            document.getElementById('inputRekapAlpha').value = abs.alpa;
+
+            toggleModal('modalEditRekap');
+        }
+
+        function handleSaveRekapAbsensi(e) {
+            e.preventDefault();
+            const id = document.getElementById('rekapEditStudentId').value;
+            const hadir = Math.max(0, parseInt(document.getElementById('inputRekapHadir').value, 10) || 0);
+            const izin = Math.max(0, parseInt(document.getElementById('inputRekapIzin').value, 10) || 0);
+            const sakit = Math.max(0, parseInt(document.getElementById('inputRekapSakit').value, 10) || 0);
+            const alpa = Math.max(0, parseInt(document.getElementById('inputRekapAlpha').value, 10) || 0);
+
+            const idx = siswaList.findIndex(x => x.id === id);
+            if (idx !== -1) {
+                siswaList[idx].absensi = { hadir, izin, sakit, alpa };
+                saveLocalData();
+                renderRekapAbsensiTable();
+                showToast(`Rekap kehadiran ${siswaList[idx].nama} diperbarui!`);
+            }
+
+            toggleModal('modalEditRekap');
         }
 
         function renderRekapAbsensiTable() {
@@ -2908,15 +3202,15 @@ onst filterSikapEl = document.getElementById('filterRombelSikap');
             }
 
             if (sourceList.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400">Belum ada data siswa pada rombel ini.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" class="p-4 text-center text-slate-400">Belum ada data siswa pada rombel ini.</td></tr>`;
                 return;
             }
 
             let index = 1;
             tbody.innerHTML = sourceList.map(s => {
                 const r = rombelList.find(x => x.id === s.rombelId) || {};
-                const abs = s.absensi || { hadir: 0, izin: 0, alpa: 0 };
-                const totalLatihan = abs.hadir + abs.izin + abs.alpa;
+                const abs = normalizeAbsensi(s.absensi);
+                const totalLatihan = abs.hadir + abs.izin + abs.sakit + abs.alpa;
                 const persentase = totalLatihan > 0 ? Math.round((abs.hadir / totalLatihan) * 100) : 100;
                 return `
                     <tr class="hover:bg-slate-50 transition">
@@ -2925,9 +3219,13 @@ onst filterSikapEl = document.getElementById('filterRombelSikap');
                         <td class="p-3 border border-slate-200 font-bold text-slate-800">${s.nama}</td>
                         <td class="p-3 border border-slate-200 text-slate-600">${r.nama || '-'}</td>
                         <td class="p-3 border border-slate-200 text-center font-bold text-emerald-700">${abs.hadir}</td>
-                        <td class="p-3 border border-slate-200 text-center font-bold text-amber-700">${abs.izin}</td>
+                        <td class="p-3 border border-slate-200 text-center font-bold text-sky-700">${abs.izin}</td>
+                        <td class="p-3 border border-slate-200 text-center font-bold text-amber-700">${abs.sakit}</td>
                         <td class="p-3 border border-slate-200 text-center font-bold text-rose-700">${abs.alpa}</td>
                         <td class="p-3 border border-slate-200 text-center font-extrabold text-indigo-900">${persentase}%</td>
+                        <td class="p-3 border border-slate-200 text-right no-print">
+                            <button onclick="openModalEditRekap('${s.id}')" class="px-2.5 py-1 bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-900 rounded-lg text-[11px] font-semibold transition" title="Edit Jumlah Kehadiran">Edit</button>
+                        </td>
                     </tr>
                 `;
             }).join('');
