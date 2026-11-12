@@ -1645,18 +1645,65 @@
             badgeCount.textContent = `${absensiLogs.length} Siswa Hadir`;
 
             if (absensiLogs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-slate-400">Belum ada scan absensi hari ini.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-slate-400">Belum ada scan absensi hari ini.</td></tr>`;
                 return;
             }
 
-            tbody.innerHTML = absensiLogs.map(l => `
+            tbody.innerHTML = absensiLogs.map((l, idx) => `
                 <tr class="hover:bg-slate-50">
-                    <td class="p-2.5 font-mono text-slate-500">${l.waktu}</td>
+                    <td class="p-2.5 font-mono text-slate-500">${l.waktu}<br><span class="text-[10px] text-slate-400">${l.tanggal || '-'}</span></td>
                     <td class="p-2.5 font-bold text-[#7B1113]">${l.nis}</td>
                     <td class="p-2.5 font-semibold text-slate-800">${l.nama}</td>
                     <td class="p-2.5"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">Hadir</span></td>
+                    <td class="p-2.5 text-right">
+                        <button onclick="deleteAbsensiLog(${idx})" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-[11px] font-semibold transition inline-flex items-center gap-1" title="Hapus hasil absensi ini">
+                            <i data-lucide="trash-2" class="w-3 h-3"></i> Hapus
+                        </button>
+                    </td>
                 </tr>
             `).join('');
+
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function deleteAbsensiLog(logIndex) {
+            const targetLog = absensiLogs[logIndex];
+            if (!targetLog) return;
+
+            if (currentUserRole === 'Pembina') {
+                const siswaObj = siswaList.find(x => x.id === targetLog.nis);
+                const myRombelIds = rombelList.filter(r => r.pembinaId === currentPembinaId).map(r => r.id);
+                if (siswaObj && !myRombelIds.includes(siswaObj.rombelId)) {
+                    showToast('Anda tidak memiliki akses menghapus absensi siswa rombel lain.', 'error');
+                    return;
+                }
+            }
+
+            customConfirm(`Yakin ingin menghapus data absensi ${targetLog.nama} (${targetLog.tanggal} pukul ${targetLog.waktu})?`, () => {
+                absensiLogs.splice(logIndex, 1);
+
+                const siswaObj = siswaList.find(x => x.id === targetLog.nis);
+                if (siswaObj) {
+                    if (siswaObj.absensi && typeof siswaObj.absensi.hadir === 'number') {
+                        siswaObj.absensi.hadir = Math.max(0, siswaObj.absensi.hadir - 1);
+                    }
+                    if (Array.isArray(siswaObj.logs)) {
+                        const subIdx = siswaObj.logs.findIndex(item => item.tanggal === targetLog.tanggal && item.waktu === targetLog.waktu);
+                        if (subIdx !== -1) {
+                            siswaObj.logs.splice(subIdx, 1);
+                        }
+                    }
+                }
+
+                lastWarningCode = '';
+                const resCard = document.getElementById('scanResultCard');
+                if (resCard) resCard.classList.add('hidden');
+
+                saveLocalData();
+                renderLogAbsensi();
+                renderRekapAbsensiTable();
+                showToast(`Absensi ${targetLog.nama} berhasil dihapus. Siswa kini dapat scan ulang.`);
+            });
         }
 
        // --- CAMERA SCANNER INTEGRATION ---
