@@ -609,6 +609,112 @@
                     </div>
                 </div>
             </div>
+ <!-- SECTION 4B: PENILAIAN SIKAP (AFEKTIF) -->
+            <div id="tab-sikap-content" class="space-y-6 hidden">
+                <!-- Rubrik Panduan Observasi Sikap (Collapsible) -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-4 no-print">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="p-2 bg-amber-100 text-amber-900 rounded-xl">
+                                <i data-lucide="book-open-check" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-sm">Rubrik Penilaian Sikap (Afektif)</h3>
+                                <p class="text-xs text-slate-400">Panduan observasi 5 aspek sikap dengan skala Sangat Baik (SB), Baik (B), dan Cukup (C)</p>
+                            </div>
+                        </div>
+                        <button type="button" onclick="toggleRubrikSikap()" id="btnToggleRubrikSikap" class="px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                            <i data-lucide="eye" class="w-4 h-4"></i>
+                            <span id="lblToggleRubrikSikap">Tampilkan Rubrik</span>
+                        </button>
+                    </div>
+
+                    <div id="rubrikSikapCard" class="hidden overflow-x-auto pt-2 border-t border-slate-100">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-700 border-b border-slate-200">
+                                    <th class="p-3 font-bold w-40">Aspek Sikap</th>
+                                    <th class="p-3 font-bold text-emerald-800 bg-emerald-50/70">Sangat Baik (SB)</th>
+                                    <th class="p-3 font-bold text-sky-800 bg-sky-50/70">Baik (B)</th>
+                                    <th class="p-3 font-bold text-amber-800 bg-amber-50/70">Cukup (C)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 text-slate-600 leading-relaxed">
+                                <tr>
+                                    <td class="p-3 font-bold text-slate-800 align-top">1. Kedisiplinan</td>
+                                    <td class="p-3 align-top bg-emerald-50/20">Selalu datang tepat waktu, mematuhi seluruh aturan tanpa perlu diingatkan, dan menyelesaikan tugas sebelum atau tepat batas waktu.</td>
+                                    <td class="p-3 align-top bg-sky-50/20">Hampir selalu datang tepat waktu dan mematuhi aturan, namun sesekali masih terlambat atau melanggar hal ringan karena alasan jelas.</td>
+                                    <td class="p-3 align-top bg-amber-50/20">Beberapa kali terlambat, melanggar aturan, atau mengumpulkan tugas melewati batas waktu sehingga perlu diingatkan.</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-bold text-slate-800 align-top">2. Tanggung Jawab</td>
+                                    <td class="p-3 align-top bg-emerald-50/20">Menyelesaikan seluruh tugas dan kewajiban dengan tuntas dan rapi, serta berani menanggung risiko atas perbuatannya.</td>
+                                    <td class="p-3 align-top bg-sky-50/20">Menyelesaikan tugas yang diberikan dengan baik, meskipun hasilnya terkadang masih memerlukan sedikit perbaikan.</td>
+                                    <td class="p-3 align-top bg-amber-50/20">Menyelesaikan tugas namun kurang tuntas atau terburu-buru, dan terkadang masih menghindari kewajiban.</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-bold text-slate-800 align-top">3. Sopan Santun</td>
+                                    <td class="p-3 align-top bg-emerald-50/20">Selalu bertutur kata ramah, menghormati orang yang lebih tua atau rekan, serta mendengarkan dengan baik saat orang lain berbicara.</td>
+                                    <td class="p-3 align-top bg-sky-50/20">Umumnya bersikap ramah dan menghormati orang lain, meskipun sesekali kurang menjaga sikap saat suasana kurang kondusif.</td>
+                                    <td class="p-3 align-top bg-amber-50/20">Terkadang menggunakan bahasa yang kurang tepat, memotong pembicaraan, atau kurang menunjukkan rasa hormat.</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-bold text-slate-800 align-top">4. Kepedulian</td>
+                                    <td class="p-3 align-top bg-emerald-50/20">Sangat peka terhadap lingkungan sekitar, sigap membantu orang lain yang kesulitan tanpa diminta, dan menjaga fasilitas bersama.</td>
+                                    <td class="p-3 align-top bg-sky-50/20">Bersedia membantu orang lain saat diminta dan ikut menjaga kebersihan serta ketertiban lingkungan sekitar.</td>
+                                    <td class="p-3 align-top bg-amber-50/20">Kurang peka terhadap kesulitan orang lain di sekitarnya dan masih perlu diingatkan untuk menjaga kebersihan lingkungan.</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-bold text-slate-800 align-top">5. Percaya Diri</td>
+                                    <td class="p-3 align-top bg-emerald-50/20">Berani berpendapat, bertanya, atau tampil di depan umum dengan tenang, jelas, dan tanpa ragu-ragu.</td>
+                                    <td class="p-3 align-top bg-sky-50/20">Berani berpendapat atau tampil jika ditunjuk atau mendapat dorongan, meski terlihat sedikit gugup di awal.</td>
+                                    <td class="p-3 align-top bg-amber-50/20">Masih terlihat ragu-ragu, malu-malu, atau cenderung pasif dan menghindari kesempatan untuk tampil atau berbicara.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tabel Lembar Penilaian Sikap (Checklist Cepat SB / B / C) -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4 no-print">
+                        <div>
+                            <h3 class="font-bold text-slate-800">Lembar Penilaian Sikap (Afektif) Siswa</h3>
+                            <p class="text-xs text-slate-400">Klik tombol <strong class="text-emerald-700">SB</strong>, <strong class="text-sky-700">B</strong>, atau <strong class="text-amber-700">C</strong> pada tiap aspek sikap, atau klik <strong>Detail</strong> untuk menambah catatan pembina</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2.5">
+                            <input type="text" id="searchSiswaSikap" oninput="renderSikapTable()" placeholder="Cari Nama / NIS..." class="border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-red-800 w-40">
+                            <select id="filterRombelSikap" onchange="renderSikapTable()" class="border border-slate-200 text-xs font-semibold rounded-xl px-3 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-red-800">
+                                <option value="ALL">Semua Rombel</option>
+                            </select>
+                            <button onclick="window.print()" class="bg-[#7B1113] hover:bg-red-900 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5">
+                                <i data-lucide="printer" class="w-4 h-4"></i> Cetak Rekap Sikap
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-[#7B1113] text-white uppercase tracking-wider">
+                                    <th class="p-3 border border-red-950 w-10 text-center">No</th>
+                                    <th class="p-3 border border-red-950">Siswa & Rombel</th>
+                                    <th class="p-3 border border-red-950 text-center">1. Kedisiplinan</th>
+                                    <th class="p-3 border border-red-950 text-center">2. Tanggung Jawab</th>
+                                    <th class="p-3 border border-red-950 text-center">3. Sopan Santun</th>
+                                    <th class="p-3 border border-red-950 text-center">4. Kepedulian</th>
+                                    <th class="p-3 border border-red-950 text-center">5. Percaya Diri</th>
+                                    <th class="p-3 border border-red-950 text-center">Predikat Akhir</th>
+                                    <th class="p-3 border border-red-950 text-right no-print">Detail</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableSikapBody" class="divide-y divide-slate-200">
+                                <!-- Dynamic Render -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
             <!-- SECTION 5: CETAK RAPORT SISWA -->
             <div id="tab-raport-content" class="space-y-6 hidden">
