@@ -2105,14 +2105,115 @@
             if (sigNama) sigNama.textContent = `( ${pbm.nama || 'Ki Pembina'} )`;
         }
 
+        function updateResetAbsensiButtonState() {
+            const btnReset = document.getElementById('btnResetAbsensiRombel');
+            const labelReset = document.getElementById('btnResetAbsensiLabel');
+            const selectedRombelId = document.getElementById('filterRombelRekap')?.value || 'ALL';
+
+            if (!btnReset) return;
+
+            // Tombol Reset hanya ditampilkan untuk Admin
+            if (currentUserRole === 'Admin') {
+                btnReset.classList.remove('hidden');
+                if (labelReset) {
+                    if (selectedRombelId === 'ALL') {
+                        labelReset.textContent = 'Reset Semua Rombel';
+                    } else {
+                        const rObj = rombelList.find(x => x.id === selectedRombelId);
+                        labelReset.textContent = rObj ? `Reset Absensi (${rObj.nama})` : 'Reset Absensi Rombel';
+                    }
+                }
+            } else {
+                btnReset.classList.add('hidden');
+            }
+        }
+
+        function onFilterRombelRekapChange() {
+            updateResetAbsensiButtonState();
+            renderRekapAbsensiTable();
+        }
+
+        function resetAbsensiPerRombel() {
+            if (currentUserRole !== 'Admin') {
+                showToast('Hanya Admin yang dapat mereset data absensi.', 'error');
+                return;
+            }
+
+            const selectedRombelId = document.getElementById('filterRombelRekap')?.value || 'ALL';
+            const rObj = selectedRombelId !== 'ALL' ? rombelList.find(x => x.id === selectedRombelId) : null;
+
+            const targetSiswa = selectedRombelId === 'ALL'
+                ? siswaList
+                : siswaList.filter(s => s.rombelId === selectedRombelId);
+
+            if (targetSiswa.length === 0) {
+                showToast('Tidak ada siswa pada rombel yang dipilih.', 'warning');
+                return;
+            }
+
+            const targetLabel = rObj ? `rombel "${rObj.nama}"` : 'SEMUA ROMBEL';
+            customConfirm(
+                `Yakin ingin mereset seluruh data kehadiran (Hadir, Izin/Sakit, Alpa, dan riwayat scan) untuk ${targetLabel} (${targetSiswa.length} siswa) kembali ke 0?`,
+                () => {
+                    const targetIds = new Set(targetSiswa.map(s => String(s.id).trim().toLowerCase()));
+
+                    // 1. Reset counter kehadiran & logs pada tiap siswa di rombel terpilih
+                    siswaList.forEach(s => {
+                        if (targetIds.has(String(s.id).trim().toLowerCase())) {
+                            s.absensi = { hadir: 0, izin: 0, alpa: 0 };
+                            s.logs = [];
+                        }
+                    });
+
+                    // 2. Bersihkan log scan harian siswa pada rombel tersebut agar bisa scan ulang dari awal
+                    absensiLogs = absensiLogs.filter(log => !targetIds.has(String(log.nis || '').trim().toLowerCase()));
+
+                    if (typeof lastWarningCode !== 'undefined') lastWarningCode = '';
+                    const resCard = document.getElementById('scanResultCard');
+                    if (resCard) resCard.classList.add('hidden');
+
+                    saveLocalData();
+                    renderRekapAbsensiTable();
+                    renderLogAbsensi();
+                    showToast(`Data absensi ${targetLabel} berhasil direset menjadi 0!`);
+                }
+            );
+        }
+
         function renderRekapAbsensiTable() {
             const tbody = document.getElementById('tableRekapAbsenBody');
+            const subtitleEl = document.getElementById('rekapPrintSubtitle');
             if (!tbody) return;
 
+            updateResetAbsensiButtonState();
+
+            const selectedRombelId = document.getElementById('filterRombelRekap')?.value || 'ALL';
             let sourceList = siswaList;
+
             if (currentUserRole === 'Pembina') {
                 const myRombelIds = rombelList.filter(r => r.pembinaId === currentPembinaId).map(r => r.id);
-                sourceList = siswaList.filter(s => myRombelIds.includes(s.rombelId));
+                sourceList = sourceList.filter(s => myRombelIds.includes(s.rombelId));
+            }
+
+            if (selectedRombelId !== 'ALL') {
+                sourceList = sourceList.filter(s => s.rombelId === selectedRombelId);
+            }
+
+            if (subtitleEl) {
+                if (selectedRombelId === 'ALL') {
+                    subtitleEl.textContent = `Menampilkan: ${currentUserRole === 'Pembina' ? 'Semua Rombel Binaan' : 'Semua Rombel'} (${sourceList.length} Siswa)`;
+                } else {
+                    const rObj = rombelList.find(x => x.id === selectedRombelId);
+                    const pbmObj = rObj ? pembinaList.find(p => p.id === rObj.pembinaId) : null;
+                    subtitleEl.textContent = rObj
+                        ? `Rombel: ${rObj.nama} • ${rObj.peminatan} (${rObj.tingkat}) • Pembina: ${pbmObj ? pbmObj.nama : '-'} (${sourceList.length} Siswa)`
+                        : `Menampilkan ${sourceList.length} Siswa`;
+                }
+            }
+
+            if (sourceList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400">Belum ada data siswa pada rombel ini.</td></tr>`;
+                return;
             }
 
             let index = 1;
