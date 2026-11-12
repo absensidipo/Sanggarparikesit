@@ -1,0 +1,19 @@
+{
+  "name": "Sistem Informasi Sanggar Parikesit",
+  "short_name": "Sanggar Parikesit",
+  "description": "Sistem Informasi Akademik, Presensi QR, dan Penilaian Sanggar Seni Tradisi Parikesit",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#7B1113",
+  "theme_color": "#7B1113",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3659/3659784.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
