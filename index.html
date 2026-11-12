@@ -1820,7 +1820,7 @@
             showToast(`${siswaObj.nama} sudah ada di list absensi hari ini!`, 'warning');
         }
 
-        // --- SCAN QR BARCODE ABSENSI LOGIC ---
+       // --- SCAN QR BARCODE ABSENSI LOGIC ---
         function openQrCard(id) {
             const s = siswaList.find(x => x.id === id);
             if (!s) return;
@@ -1846,68 +1846,120 @@
             toggleModal('modalQrCard');
         }
 
-        function prosesScanAbsensi() {
-            if (isProcessingScan) return;
-            isProcessingScan = true;
+        function drawRoundedRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+        }
 
-            try {
-                const inputNis = document.getElementById('scanInputNis').value.trim();
-                const tgl = getActiveAbsensiTanggal();
-                if (!inputNis) return;
+        function downloadQrCardImage() {
+            const nama = (document.getElementById('qrCardNama')?.textContent || 'Siswa').trim();
+            const rombel = (document.getElementById('qrCardRombel')?.textContent || '-').trim();
+            const nis = (document.getElementById('qrCardNisCode')?.textContent || 'NIS').trim();
+            const qrContainer = document.getElementById('qrcodeCanvas');
 
-                const s = findSiswaByCode(inputNis);
-                const resCard = document.getElementById('scanResultCard');
-                const resName = document.getElementById('scanResName');
-                const resInfo = document.getElementById('scanResInfo');
+            const qrCanvas = qrContainer ? qrContainer.querySelector('canvas') : null;
+            const qrImg = qrContainer ? qrContainer.querySelector('img') : null;
 
-                if (!s) {
-                    resCard.className = 'p-4 rounded-xl border bg-rose-50 border-rose-200 text-rose-900 text-xs space-y-1';
-                    resName.textContent = 'Siswa Tidak Ditemukan!';
-                    resInfo.textContent = `NIS/Barcode "${inputNis}" tidak terdaftar dalam sistem.`;
-                    resCard.classList.remove('hidden');
-                    return;
-                }
-
-                if (currentUserRole === 'Pembina') {
-                    const myRombelIds = rombelList.filter(r => r.pembinaId === currentPembinaId).map(r => r.id);
-                    if (!myRombelIds.includes(s.rombelId)) {
-                        resCard.className = 'p-4 rounded-xl border bg-amber-50 border-amber-200 text-amber-900 text-xs space-y-1';
-                        resName.textContent = 'Akses Ditolak!';
-                        resInfo.textContent = `${s.nama} bukan merupakan siswa binaan rombel Anda.`;
-                        resCard.classList.remove('hidden');
-                        return;
-                    }
-                }
-
-                // Kunci Absensi: Jika siswa sudah ada di list absensi pada tanggal tersebut, hentikan proses
-                const sudahAbsen = getExistingAbsensiLog(s.id, tgl);
-                if (sudahAbsen) {
-                    tampilkanStatusSudahAbsen(s, tgl, sudahAbsen.waktu);
-                    return;
-                }
-
-                if (!s.absensi) s.absensi = { hadir: 0, izin: 0, alpa: 0 };
-                if (!Array.isArray(s.logs)) s.logs = [];
-
-                const timeNow = new Date().toLocaleTimeString('id-ID');
-                s.absensi.hadir = (s.absensi.hadir || 0) + 1;
-                s.logs.push({ tanggal: tgl, waktu: timeNow, status: 'Hadir' });
-                absensiLogs.unshift({ waktu: timeNow, tanggal: tgl, nis: s.id, nama: s.nama, status: 'Hadir' });
-
-                saveLocalData();
-
-                resCard.className = 'p-4 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-900 text-xs space-y-1';
-                resName.textContent = `✅ Berhasil Absen: ${s.nama}`;
-                resInfo.textContent = `NIS: ${s.id} | Tanggal: ${tgl} | Pukul: ${timeNow}`;
-                resCard.classList.remove('hidden');
-
-                document.getElementById('scanInputNis').value = '';
-                renderLogAbsensi();
-                renderRekapAbsensiTable();
-                showToast(`Presensi ${s.nama} tercatat & tersimpan ke Cloud!`);
-            } finally {
-                isProcessingScan = false;
+            if (!qrCanvas && !qrImg) {
+                showToast('QR Code belum siap, silakan buka ulang kartu.', 'error');
+                return;
             }
+
+            // Buat canvas resolusi tinggi (640 x 880 px) agar hasil gambar tajam
+            const width = 640;
+            const height = 880;
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+
+            // Latar belakang gradien merah marun khas Sanggar Parikesit
+            const grad = ctx.createLinearGradient(0, 0, width, height);
+            grad.addColorStop(0, '#7B1113');
+            grad.addColorStop(1, '#450a0a');
+
+            drawRoundedRect(ctx, 16, 16, width - 32, height - 32, 36);
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            // Garis tepi emas
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = 'rgba(251, 191, 36, 0.55)';
+            ctx.stroke();
+
+            // Judul Sanggar
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#FCD34D';
+            ctx.font = 'bold 21px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('SANGGAR SENI TRADISI PARIKESIT', width / 2, 92);
+
+            // Garis pemisah tipis
+            ctx.strokeStyle = 'rgba(252, 211, 77, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(120, 118);
+            ctx.lineTo(width - 120, 118);
+            ctx.stroke();
+
+            // Nama Siswa
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = '800 36px "Plus Jakarta Sans", sans-serif';
+            const displayNama = nama.length > 26 ? nama.slice(0, 25) + '…' : nama;
+            ctx.fillText(displayNama, width / 2, 178);
+
+            // Rombel & Peminatan
+            ctx.fillStyle = '#FEE2E2';
+            ctx.font = '500 22px "Plus Jakarta Sans", sans-serif';
+            const displayRombel = rombel.length > 40 ? rombel.slice(0, 39) + '…' : rombel;
+            ctx.fillText(displayRombel, width / 2, 222);
+
+            // Kotak putih wadah QR Code
+            const boxSize = 360;
+            const boxX = (width - boxSize) / 2;
+            const boxY = 275;
+            drawRoundedRect(ctx, boxX, boxY, boxSize, boxSize, 28);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fill();
+
+            // Gambar QR Code tajam tanpa blur
+            const qrPadding = 32;
+            const qrDrawSize = boxSize - (qrPadding * 2);
+            ctx.imageSmoothingEnabled = false;
+            if (qrCanvas) {
+                ctx.drawImage(qrCanvas, boxX + qrPadding, boxY + qrPadding, qrDrawSize, qrDrawSize);
+            } else if (qrImg) {
+                ctx.drawImage(qrImg, boxX + qrPadding, boxY + qrPadding, qrDrawSize, qrDrawSize);
+            }
+
+            // Kode NIS Siswa
+            ctx.fillStyle = '#FCD34D';
+            ctx.font = 'bold 34px monospace';
+            ctx.fillText(nis, width / 2, 710);
+
+            // Keterangan bawah kartu
+            ctx.fillStyle = 'rgba(254, 226, 226, 0.75)';
+            ctx.font = '500 18px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('Kartu Presensi Resmi • Tunjukkan saat scan kehadiran', width / 2, 765);
+
+            // Proses unduh otomatis sebagai file PNG
+            const link = document.createElement('a');
+            const safeName = nama.replace(/[^a-zA-Z0-9_-]+/g, '_');
+            link.download = `Kartu_QR_${nis}_${safeName}.png`;
+            link.href = canvas.toDataURL('image/png');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast(`Gambar kartu QR ${nama} berhasil diunduh!`);
         }
 
         // --- RAPORT DAFTAR SISWA & CETAK / PDF ---
