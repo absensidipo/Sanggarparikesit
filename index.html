@@ -2469,6 +2469,178 @@ onst filterSikapEl = document.getElementById('filterRombelSikap');
                 isProcessingScan = false;
             }
         }
+// --- PENILAIAN SIKAP (AFEKTIF) ---
+        function toggleRubrikSikap() {
+            const card = document.getElementById('rubrikSikapCard');
+            const lbl = document.getElementById('lblToggleRubrikSikap');
+            if (!card) return;
+            const isHidden = card.classList.toggle('hidden');
+            if (lbl) {
+                lbl.textContent = isHidden ? 'Tampilkan Rubrik' : 'Sembunyikan Rubrik';
+            }
+        }
+
+        function getSikapLabelText(code) {
+            if (code === 'SB') return 'Sangat Baik (SB)';
+            if (code === 'B') return 'Baik (B)';
+            return 'Cukup (C)';
+        }
+
+        function getPredikatSikapAkhir(sikapObj) {
+            const sk = normalizeSikap(sikapObj);
+            const scoreMap = { SB: 3, B: 2, C: 1 };
+            const total =
+                (scoreMap[sk.disiplin] || 3) +
+                (scoreMap[sk.tanggungJawab] || 3) +
+                (scoreMap[sk.sopanSantun] || 3) +
+                (scoreMap[sk.kepedulian] || 3) +
+                (scoreMap[sk.percayaDiri] || 3);
+            const avg = total / 5;
+            if (avg >= 2.6) return { code: 'SB', label: 'Sangat Baik (SB)', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200' };
+            if (avg >= 1.8) return { code: 'B', label: 'Baik (B)', badgeClass: 'bg-sky-100 text-sky-800 border-sky-200' };
+            return { code: 'C', label: 'Cukup (C)', badgeClass: 'bg-amber-100 text-amber-800 border-amber-200' };
+        }
+
+        function renderSikapButtonsHtml(siswaId, fieldKey, currentVal) {
+            const grades = [
+                { code: 'SB', activeClass: 'bg-emerald-600 text-white border-emerald-700 shadow-sm' },
+                { code: 'B', activeClass: 'bg-sky-600 text-white border-sky-700 shadow-sm' },
+                { code: 'C', activeClass: 'bg-amber-500 text-slate-900 border-amber-600 shadow-sm' }
+            ];
+            return `
+                <div class="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 gap-0.5">
+                    ${grades.map(g => {
+                        const isActive = currentVal === g.code;
+                        const cls = isActive
+                            ? g.activeClass
+                            : 'text-slate-500 hover:bg-white hover:text-slate-800 border-transparent';
+                        return `<button type="button" onclick="setSikapAspek('${siswaId}', '${fieldKey}', '${g.code}')" class="px-2 py-1 rounded-md text-[10px] font-extrabold border transition ${cls}" title="${getSikapLabelText(g.code)}">${g.code}</button>`;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function setSikapAspek(siswaId, fieldKey, gradeCode) {
+            const idx = siswaList.findIndex(x => x.id === siswaId);
+            if (idx === -1) return;
+
+            siswaList[idx].sikap = normalizeSikap(siswaList[idx].sikap);
+            siswaList[idx].sikap[fieldKey] = gradeCode;
+
+            saveLocalData();
+            renderSikapTable();
+            renderRaportPreview();
+            const aspekLabel = RUBRIK_SIKAP_DATA[fieldKey]?.label || fieldKey;
+            showToast(`${aspekLabel} ${siswaList[idx].nama}: ${getSikapLabelText(gradeCode)}`);
+        }
+
+        function renderSikapTable() {
+            const tbody = document.getElementById('tableSikapBody');
+            if (!tbody) return;
+
+            const keyword = (document.getElementById('searchSiswaSikap')?.value || '').trim().toLowerCase();
+            const selectedRombelId = document.getElementById('filterRombelSikap')?.value || 'ALL';
+
+            let sourceList = siswaList;
+            if (currentUserRole === 'Pembina') {
+                const myRombelIds = rombelList.filter(r => r.pembinaId === currentPembinaId).map(r => r.id);
+                sourceList = sourceList.filter(s => myRombelIds.includes(s.rombelId));
+            }
+            if (selectedRombelId !== 'ALL') {
+                sourceList = sourceList.filter(s => s.rombelId === selectedRombelId);
+            }
+            if (keyword) {
+                sourceList = sourceList.filter(s =>
+                    String(s.nama || '').toLowerCase().includes(keyword) ||
+                    String(s.id || '').toLowerCase().includes(keyword)
+                );
+            }
+
+            if (sourceList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-slate-400">Belum ada data siswa pada filter ini.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = sourceList.map((s, idx) => {
+                const r = rombelList.find(x => x.id === s.rombelId) || {};
+                const sk = normalizeSikap(s.sikap);
+                const akhir = getPredikatSikapAkhir(sk);
+                return `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 border border-slate-200 text-center font-semibold text-slate-500">${idx + 1}</td>
+                        <td class="p-3 border border-slate-200">
+                            <p class="font-bold text-slate-800">${s.nama}</p>
+                            <p class="text-[10px] text-[#7B1113] font-semibold">${s.id} • <span class="text-slate-500 font-normal">${r.nama || '-'}</span></p>
+                        </td>
+                        <td class="p-3 border border-slate-200 text-center">${renderSikapButtonsHtml(s.id, 'disiplin', sk.disiplin)}</td>
+                        <td class="p-3 border border-slate-200 text-center">${renderSikapButtonsHtml(s.id, 'tanggungJawab', sk.tanggungJawab)}</td>
+                        <td class="p-3 border border-slate-200 text-center">${renderSikapButtonsHtml(s.id, 'sopanSantun', sk.sopanSantun)}</td>
+                        <td class="p-3 border border-slate-200 text-center">${renderSikapButtonsHtml(s.id, 'kepedulian', sk.kepedulian)}</td>
+                        <td class="p-3 border border-slate-200 text-center">${renderSikapButtonsHtml(s.id, 'percayaDiri', sk.percayaDiri)}</td>
+                        <td class="p-3 border border-slate-200 text-center">
+                            <span class="px-2.5 py-1 rounded-lg border text-[11px] font-bold ${akhir.badgeClass}">${akhir.label}</span>
+                        </td>
+                        <td class="p-3 border border-slate-200 text-right no-print">
+                            <button onclick="openModalSikap('${s.id}')" class="px-2.5 py-1 bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-900 rounded-lg text-[11px] font-semibold transition">Detail</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updateModalSikapRubrikHint() {
+            const dVal = document.getElementById('inputSikapDisiplin')?.value || 'SB';
+            const tVal = document.getElementById('inputSikapTanggungJawab')?.value || 'SB';
+            const sVal = document.getElementById('inputSikapSopanSantun')?.value || 'SB';
+            const kVal = document.getElementById('inputSikapKepedulian')?.value || 'SB';
+            const pVal = document.getElementById('inputSikapPercayaDiri')?.value || 'SB';
+
+            document.getElementById('hintSikapDisiplin').textContent = RUBRIK_SIKAP_DATA.disiplin[dVal] || '';
+            document.getElementById('hintSikapTanggungJawab').textContent = RUBRIK_SIKAP_DATA.tanggungJawab[tVal] || '';
+            document.getElementById('hintSikapSopanSantun').textContent = RUBRIK_SIKAP_DATA.sopanSantun[sVal] || '';
+            document.getElementById('hintSikapKepedulian').textContent = RUBRIK_SIKAP_DATA.kepedulian[kVal] || '';
+            document.getElementById('hintSikapPercayaDiri').textContent = RUBRIK_SIKAP_DATA.percayaDiri[pVal] || '';
+        }
+
+        function openModalSikap(id) {
+            const s = siswaList.find(x => x.id === id);
+            if (!s) return;
+            const r = rombelList.find(x => x.id === s.rombelId) || {};
+            const sk = normalizeSikap(s.sikap);
+
+            document.getElementById('sikapStudentId').value = s.id;
+            document.getElementById('sikapStudentName').textContent = `${s.nama} (${s.id}) - ${r.nama || '-'}`;
+            document.getElementById('inputSikapDisiplin').value = sk.disiplin;
+            document.getElementById('inputSikapTanggungJawab').value = sk.tanggungJawab;
+            document.getElementById('inputSikapSopanSantun').value = sk.sopanSantun;
+            document.getElementById('inputSikapKepedulian').value = sk.kepedulian;
+            document.getElementById('inputSikapPercayaDiri').value = sk.percayaDiri;
+            document.getElementById('inputSikapCatatan').value = sk.catatan || '';
+
+            updateModalSikapRubrikHint();
+            toggleModal('modalSikap');
+        }
+
+        function handleSaveSikap(e) {
+            e.preventDefault();
+            const id = document.getElementById('sikapStudentId').value;
+            const idx = siswaList.findIndex(x => x.id === id);
+            if (idx !== -1) {
+                siswaList[idx].sikap = {
+                    disiplin: document.getElementById('inputSikapDisiplin').value,
+                    tanggungJawab: document.getElementById('inputSikapTanggungJawab').value,
+                    sopanSantun: document.getElementById('inputSikapSopanSantun').value,
+                    kepedulian: document.getElementById('inputSikapKepedulian').value,
+                    percayaDiri: document.getElementById('inputSikapPercayaDiri').value,
+                    catatan: document.getElementById('inputSikapCatatan').value.trim()
+                };
+                saveLocalData();
+                renderSikapTable();
+                renderRaportPreview();
+                showToast(`Penilaian sikap ${siswaList[idx].nama} berhasil disimpan!`);
+            }
+            toggleModal('modalSikap');
+        }
 
         // --- RAPORT DAFTAR SISWA & CETAK / PDF ---
         function renderRaportSiswaList() {
