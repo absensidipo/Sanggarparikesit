@@ -1561,24 +1561,24 @@
 
         // --- SISWA FILTERED UNTUK PEMBINA & ADMIN ---
         function populateRombelSelects() {
-            const pemFilter = document.getElementById('filterPeminatan')?.value || 'ALL';
-            const tktFilter = document.getElementById('filterTingkat')?.value || 'ALL';
-            const filterRombelEl = document.getElementById('filterRombelSiswa');
-
-            if (filterRombelEl) {
-                let filtered = rombelList;
+            // Populate Dropdown Filter Rombel pada Halaman Rekap Kehadiran
+            const filterRekapEl = document.getElementById('filterRombelRekap');
+            if (filterRekapEl) {
+                const prevSelected = filterRekapEl.value || 'ALL';
+                let rekapRombels = rombelList;
                 if (currentUserRole === 'Pembina') {
-                    filtered = filtered.filter(r => r.pembinaId === currentPembinaId);
+                    rekapRombels = rekapRombels.filter(r => r.pembinaId === currentPembinaId);
                 }
-                if (pemFilter !== 'ALL') filtered = filtered.filter(r => r.peminatan === pemFilter);
-                if (tktFilter !== 'ALL') filtered = filtered.filter(r => r.tingkat === tktFilter);
 
-                let html = '<option value="ALL">Semua Rombel</option>';
-                if (filtered.length > 0) {
-                    html += filtered.map(r => `<option value="${r.id}">${r.nama}</option>`).join('');
-                }
-                filterRombelEl.innerHTML = html;
+                let rekapHtml = `<option value="ALL">${currentUserRole === 'Pembina' ? 'Semua Rombel Binaan' : 'Semua Rombel'}</option>`;
+                rekapHtml += rekapRombels.map(r => `<option value="${r.id}">${r.nama} (${r.peminatan})</option>`).join('');
+                filterRekapEl.innerHTML = rekapHtml;
+
+                const stillExists = prevSelected === 'ALL' || rekapRombels.some(r => r.id === prevSelected);
+                filterRekapEl.value = stillExists ? prevSelected : 'ALL';
             }
+
+            updateResetAbsensiButtonState();
             updateModalRombelDropdown();
         }
 
