@@ -1238,7 +1238,38 @@
         // Authentication & Role State
         let currentUserRole = 'Admin'; // 'Admin' or 'Pembina'
         let currentPembinaId = null;   // ID Pembina yang sedang login (jika role Pembina)
-
+        
+// Rubrik Penilaian Sikap (Afektif) sesuai Standar Observasi
+        const RUBRIK_SIKAP_DATA = {
+            disiplin: {
+                label: 'Kedisiplinan',
+                SB: 'Selalu datang tepat waktu, mematuhi seluruh aturan tanpa perlu diingatkan, dan menyelesaikan tugas sebelum atau tepat batas waktu.',
+                B: 'Hampir selalu datang tepat waktu dan mematuhi aturan, namun sesekali masih terlambat atau melanggar hal ringan karena alasan jelas.',
+                C: 'Beberapa kali terlambat, melanggar aturan, atau mengumpulkan tugas melewati batas waktu sehingga perlu diingatkan.'
+            },
+            tanggungJawab: {
+                label: 'Tanggung Jawab',
+                SB: 'Menyelesaikan seluruh tugas dan kewajiban dengan tuntas dan rapi, serta berani menanggung risiko atas perbuatannya.',
+                B: 'Menyelesaikan tugas yang diberikan dengan baik, meskipun hasilnya terkadang masih memerlukan sedikit perbaikan.',
+                C: 'Menyelesaikan tugas namun kurang tuntas atau terburu-buru, dan terkadang masih menghindari kewajiban.'
+            },
+            sopanSantun: {
+                label: 'Sopan Santun',
+                SB: 'Selalu bertutur kata ramah, menghormati orang yang lebih tua atau rekan, serta mendengarkan dengan baik saat orang lain berbicara.',
+                B: 'Umumnya bersikap ramah dan menghormati orang lain, meskipun sesekali kurang menjaga sikap saat suasana kurang kondusif.',
+                C: 'Terkadang menggunakan bahasa yang kurang tepat, memotong pembicaraan, atau kurang menunjukkan rasa hormat.'
+            },
+            kepedulian: {
+                label: 'Kepedulian',
+                SB: 'Sangat peka terhadap lingkungan sekitar, sigap membantu orang lain yang kesulitan tanpa diminta, dan menjaga fasilitas bersama.',
+                B: 'Bersedia membantu orang lain saat diminta dan ikut menjaga kebersihan serta ketertiban lingkungan sekitar.',
+                C: 'Kurang peka terhadap kesulitan orang lain di sekitarnya dan masih perlu diingatkan untuk menjaga kebersihan lingkungan.'
+            },
+            percayaDiri: {
+                label: 'Percaya Diri',
+                SB: 'Berani berpendapat, bertanya, atau tampil di depan umum dengan tenang, jelas, dan tanpa ragu-ragu.',
+                B: 'Berani berpendapat atau tampil jika ditunjuk atau mendapat dorongan, meski terlihat sedikit gugup di awal.',
+                C: 'Masih terlihat ragu-ragu, malu-malu, atau cenderung pasif dan menghindari kesempatan untuk tampil atau berbicara.'
         // Initial Data Pembina Guru
         let pembinaList = JSON.parse(localStorage.getItem('parikesit_pembina')) || [
             { id: 'PBM-001', nama: 'Ki Sastro Utomo', bidang: 'Seni Karawitan', telp: '081234567890' },
