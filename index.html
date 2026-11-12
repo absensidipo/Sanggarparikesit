@@ -1780,7 +1780,69 @@
                 showToast(`Absensi ${targetLog.nama} berhasil dihapus. Siswa kini dapat scan ulang.`);
             });
         }
+        // --- EFEK SUARA SCAN QR (BERHASIL & ERROR) ---
+        let scanAudioCtx = null;
 
+        function initScanAudio() {
+            try {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContextClass) return null;
+                if (!scanAudioCtx) {
+                    scanAudioCtx = new AudioContextClass();
+                }
+                if (scanAudioCtx.state === 'suspended') {
+                    scanAudioCtx.resume();
+                }
+                return scanAudioCtx;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function playScanSound(type = 'success') {
+            const ctx = initScanAudio();
+            if (!ctx) return;
+
+            const now = ctx.currentTime;
+
+            if (type === 'success') {
+                // Nada naik ceria (Ting-Tong) untuk scan berhasil
+                const notes = [523.25, 659.25, 783.99];
+                notes.forEach((freq, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.09);
+
+                    gain.gain.setValueAtTime(0.001, now + idx * 0.09);
+                    gain.gain.exponentialRampToValueAtTime(0.28, now + idx * 0.09 + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.09 + 0.22);
+
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now + idx * 0.09);
+                    osc.stop(now + idx * 0.09 + 0.24);
+                });
+            } else {
+                // Nada rendah ganda (Tet-Tet) untuk kode error / ditolak / sudah absen
+                const notes = [220, 165];
+                notes.forEach((freq, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.16);
+
+                    gain.gain.setValueAtTime(0.001, now + idx * 0.16);
+                    gain.gain.exponentialRampToValueAtTime(0.22, now + idx * 0.16 + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.16 + 0.14);
+
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now + idx * 0.16);
+                    osc.stop(now + idx * 0.16 + 0.15);
+                });
+            }
+        }
       // --- CAMERA SCANNER INTEGRATION ---
         let isProcessingScan = false;
         let lastWarningCode = '';
