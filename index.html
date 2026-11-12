@@ -1949,7 +1949,20 @@
                 updateModalRombelDropdown();
             }
         }
+onst filterSikapEl = document.getElementById('filterRombelSikap');
+            if (filterSikapEl) {
+                const prevSikap = filterSikapEl.value || 'ALL';
+                let sikapRombels = rombelList;
+                if (currentUserRole === 'Pembina') {
+                    sikapRombels = sikapRombels.filter(r => r.pembinaId === currentPembinaId);
+                }
+                let sikapHtml = `<option value="ALL">${currentUserRole === 'Pembina' ? 'Semua Rombel Binaan' : 'Semua Rombel'}</option>`;
+                sikapHtml += sikapRombels.map(r => `<option value="${r.id}">${r.nama} (${r.peminatan})</option>`).join('');
+                filterSikapEl.innerHTML = sikapHtml;
 
+                const stillExists = prevSikap === 'ALL' || sikapRombels.some(r => r.id === prevSikap);
+                filterSikapEl.value = stillExists ? prevSikap : 'ALL';
+            }
         function updateModalRombelDropdown() {
             const pemModal = document.getElementById('modalPeminatanSiswa')?.value || 'Seni Karawitan';
             const tktModal = document.getElementById('modalTingkatSiswa')?.value || 'Tingkat Dasar (Pemula)';
