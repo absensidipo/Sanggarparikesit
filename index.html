@@ -934,8 +934,8 @@
     const DEFAULT_JSONBIN_KEY = 'tempel_X_Master_Key_anda_disini';
     const DEFAULT_JSONBIN_BIN_ID = 'tempel_Bin_ID_anda_disini';
         // Konfigurasi Global JSONBin.io & Scanner
-        let jsonbinApiKey = localStorage.getItem('parikesit_jsonbin_key') || '';
-        let jsonbinBinId = localStorage.getItem('parikesit_jsonbin_bin_id') || '';
+    let jsonbinApiKey = localStorage.getItem('parikesit_jsonbin_key') || DEFAULT_JSONBIN_KEY;
+    let jsonbinBinId = localStorage.getItem('parikesit_jsonbin_bin_id') || DEFAULT_JSONBIN_BIN_ID;
         let syncDebounceTimer = null;
         let html5QrScanner = null;
         let qrCodeObj = null;
