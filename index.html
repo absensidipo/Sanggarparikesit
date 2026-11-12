@@ -1125,6 +1125,92 @@
             </form>
         </div>
     </div>
+        <!-- MODAL 6: Detail Penilaian Sikap (Afektif) & Catatan Pembina -->
+    <div id="modalSikap" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden no-print overflow-y-auto">
+        <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl border border-slate-100 m-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
+                <div>
+                    <h3 class="font-bold text-lg text-slate-800">Detail Penilaian Sikap (Afektif)</h3>
+                    <p id="sikapStudentName" class="text-xs text-red-900 font-semibold mt-0.5">-</p>
+                </div>
+                <button onclick="toggleModal('modalSikap')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form onsubmit="handleSaveSikap(event)" class="space-y-3.5">
+                <input type="hidden" id="sikapStudentId">
+
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 space-y-1.5">
+                    <div class="flex items-center justify-between gap-2">
+                        <label class="text-xs font-bold text-slate-800">1. Kedisiplinan</label>
+                        <select id="inputSikapDisiplin" onchange="updateModalSikapRubrikHint()" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold bg-white text-slate-800">
+                            <option value="SB">Sangat Baik (SB)</option>
+                            <option value="B">Baik (B)</option>
+                            <option value="C">Cukup (C)</option>
+                        </select>
+                    </div>
+                    <p id="hintSikapDisiplin" class="text-[11px] text-slate-500 leading-relaxed">-</p>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 space-y-1.5">
+                    <div class="flex items-center justify-between gap-2">
+                        <label class="text-xs font-bold text-slate-800">2. Tanggung Jawab</label>
+                        <select id="inputSikapTanggungJawab" onchange="updateModalSikapRubrikHint()" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold bg-white text-slate-800">
+                            <option value="SB">Sangat Baik (SB)</option>
+                            <option value="B">Baik (B)</option>
+                            <option value="C">Cukup (C)</option>
+                        </select>
+                    </div>
+                    <p id="hintSikapTanggungJawab" class="text-[11px] text-slate-500 leading-relaxed">-</p>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 space-y-1.5">
+                    <div class="flex items-center justify-between gap-2">
+                        <label class="text-xs font-bold text-slate-800">3. Sopan Santun</label>
+                        <select id="inputSikapSopanSantun" onchange="updateModalSikapRubrikHint()" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold bg-white text-slate-800">
+                            <option value="SB">Sangat Baik (SB)</option>
+                            <option value="B">Baik (B)</option>
+                            <option value="C">Cukup (C)</option>
+                        </select>
+                    </div>
+                    <p id="hintSikapSopanSantun" class="text-[11px] text-slate-500 leading-relaxed">-</p>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 space-y-1.5">
+                    <div class="flex items-center justify-between gap-2">
+                        <label class="text-xs font-bold text-slate-800">4. Kepedulian</label>
+                        <select id="inputSikapKepedulian" onchange="updateModalSikapRubrikHint()" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold bg-white text-slate-800">
+                            <option value="SB">Sangat Baik (SB)</option>
+                            <option value="B">Baik (B)</option>
+                            <option value="C">Cukup (C)</option>
+                        </select>
+                    </div>
+                    <p id="hintSikapKepedulian" class="text-[11px] text-slate-500 leading-relaxed">-</p>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 space-y-1.5">
+                    <div class="flex items-center justify-between gap-2">
+                        <label class="text-xs font-bold text-slate-800">5. Percaya Diri</label>
+                        <select id="inputSikapPercayaDiri" onchange="updateModalSikapRubrikHint()" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold bg-white text-slate-800">
+                            <option value="SB">Sangat Baik (SB)</option>
+                            <option value="B">Baik (B)</option>
+                            <option value="C">Cukup (C)</option>
+                        </select>
+                    </div>
+                    <p id="hintSikapPercayaDiri" class="text-[11px] text-slate-500 leading-relaxed">-</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Catatan Pembina (Opsional)</label>
+                    <input type="text" id="inputSikapCatatan" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-red-800 focus:outline-none" placeholder="Contoh: Sangat antusias saat latihan bersama kelompok.">
+                </div>
+
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="toggleModal('modalSikap')" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-medium rounded-xl hover:bg-slate-50">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-[#7B1113] hover:bg-red-900 text-white text-xs font-medium rounded-xl">Simpan Penilaian Sikap</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
     <!-- Script Logic -->
     <script>
