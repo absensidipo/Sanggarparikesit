@@ -1293,6 +1293,19 @@
         ];
 
         let absensiLogs = JSON.parse(localStorage.getItem('parikesit_absensi_logs') || '[]');
+         function normalizeSikap(sikap) {
+            const validGrades = ['SB', 'B', 'C'];
+            const src = sikap || {};
+            return {
+                disiplin: validGrades.includes(src.disiplin) ? src.disiplin : 'SB',
+                tanggungJawab: validGrades.includes(src.tanggungJawab) ? src.tanggungJawab : 'SB',
+                sopanSantun: validGrades.includes(src.sopanSantun) ? src.sopanSantun : 'SB',
+                kepedulian: validGrades.includes(src.kepedulian) ? src.kepedulian : 'SB',
+                percayaDiri: validGrades.includes(src.percayaDiri) ? src.percayaDiri : 'SB',
+                catatan: String(src.catatan || '')
+            };
+        }
+
 
         // --- TOAST & CUSTOM CONFIRM HELPERS ---
         let toastTimeout = null;
