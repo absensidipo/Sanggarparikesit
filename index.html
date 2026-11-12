@@ -1696,6 +1696,119 @@
             }
         }
 
+     // --- CAMERA SCANNER INTEGRATION ---
+        let isProcessingScan = false;
+        let lastWarningCode = '';
+        let lastWarningTime = 0;
+
+        function getActiveAbsensiTanggal() {
+            const dateInput = document.getElementById('absensiTanggal');
+            if (dateInput && dateInput.value) {
+                return dateInput.value;
+            }
+            const today = new Date().toISOString().split('T')[0];
+            if (dateInput) dateInput.value = today;
+            return today;
+        }
+
+        function findSiswaByCode(rawCode) {
+            const cleanCode = String(rawCode || '').trim().toLowerCase();
+            if (!cleanCode) return null;
+            return siswaList.find(x =>
+                String(x.id || '').trim().toLowerCase() === cleanCode ||
+                String(x.nama || '').trim().toLowerCase() === cleanCode
+            ) || siswaList.find(x =>
+                String(x.nama || '').trim().toLowerCase().includes(cleanCode)
+            );
+        }
+
+        function getExistingAbsensiLog(siswaId, tgl) {
+            const targetId = String(siswaId || '').trim().toLowerCase();
+            return absensiLogs.find(log =>
+                String(log.nis || '').trim().toLowerCase() === targetId &&
+                String(log.tanggal || '').trim() === String(tgl || '').trim()
+            );
+        }
+
+        function startCameraScanner() {
+            const btnStart = document.getElementById('btnStartCam');
+            const btnStop = document.getElementById('btnStopCam');
+
+            if (!html5QrScanner) {
+                html5QrScanner = new Html5Qrcode("reader");
+            }
+
+            Html5Qrcode.getCameras().then(cameras => {
+                if (cameras && cameras.length) {
+                    const cameraId = cameras[cameras.length - 1].id;
+                    html5QrScanner.start(
+                        cameraId, 
+                        { fps: 10, qrbox: { width: 200, height: 200 } },
+                        (decodedText) => {
+                            if (isProcessingScan) return;
+
+                            const scannedCode = String(decodedText || '').trim();
+                            if (!scannedCode) return;
+
+                            const tgl = getActiveAbsensiTanggal();
+                            const siswaObj = findSiswaByCode(scannedCode);
+
+                            // Kunci: Jika siswa sudah masuk list absensi hari ini, tolak scan ulang
+                            if (siswaObj) {
+                                const existingLog = getExistingAbsensiLog(siswaObj.id, tgl);
+                                if (existingLog) {
+                                    const now = Date.now();
+                                    if (siswaObj.id !== lastWarningCode || (now - lastWarningTime) > 4000) {
+                                        lastWarningCode = siswaObj.id;
+                                        lastWarningTime = now;
+                                        tampilkanStatusSudahAbsen(siswaObj, tgl, existingLog.waktu);
+                                    }
+                                    return;
+                                }
+                            }
+
+                            document.getElementById('scanInputNis').value = scannedCode;
+                            prosesScanAbsensi();
+                        },
+                        (errorMessage) => {}
+                    ).then(() => {
+                        btnStart.classList.add('hidden');
+                        btnStop.classList.remove('hidden');
+                    }).catch(err => {
+                        showToast("Gagal mengaktifkan kamera: " + err, 'error');
+                    });
+                } else {
+                    showToast("Kamera tidak ditemukan pada perangkat ini!", 'warning');
+                }
+            }).catch(err => {
+                showToast("Izin kamera ditolak atau tidak didukung!", 'error');
+            });
+        }
+
+        function stopCameraScanner() {
+            if (html5QrScanner) {
+                html5QrScanner.stop().then(() => {
+                    document.getElementById('btnStartCam').classList.remove('hidden');
+                    document.getElementById('btnStopCam').classList.add('hidden');
+                }).catch(err => console.log(err));
+            }
+        }
+
+        function tampilkanStatusSudahAbsen(siswaObj, tgl, waktuTercatat) {
+            const resCard = document.getElementById('scanResultCard');
+            const resName = document.getElementById('scanResName');
+            const resInfo = document.getElementById('scanResInfo');
+
+            if (resCard && resName && resInfo) {
+                resCard.className = 'p-4 rounded-xl border bg-amber-50 border-amber-200 text-amber-900 text-xs space-y-1';
+                resName.textContent = `⛔ Sudah Masuk Daftar Absensi: ${siswaObj.nama}`;
+                resInfo.textContent = `NIS: ${siswaObj.id} sudah tercatat hadir pada ${tgl} pukul ${waktuTercatat}. Tidak dapat scan ulang.`;
+                resCard.classList.remove('hidden');
+            }
+            document.getElementById('scanInputNis').value = '';
+            showToast(`${siswaObj.nama} sudah ada di list absensi hari ini!`, 'warning');
+        }
+
         // --- SCAN QR BARCODE ABSENSI LOGIC ---
         function openQrCard(id) {
             const s = siswaList.find(x => x.id === id);
@@ -1723,50 +1836,67 @@
         }
 
         function prosesScanAbsensi() {
-            const inputNis = document.getElementById('scanInputNis').value.trim();
-            const tgl = document.getElementById('absensiTanggal').value;
-            if (!inputNis) return;
+            if (isProcessingScan) return;
+            isProcessingScan = true;
 
-            const s = siswaList.find(x => x.id.toLowerCase() === inputNis.toLowerCase() || x.nama.toLowerCase().includes(inputNis.toLowerCase()));
-            const resCard = document.getElementById('scanResultCard');
-            const resName = document.getElementById('scanResName');
-            const resInfo = document.getElementById('scanResInfo');
+            try {
+                const inputNis = document.getElementById('scanInputNis').value.trim();
+                const tgl = getActiveAbsensiTanggal();
+                if (!inputNis) return;
 
-            if (!s) {
-                resCard.className = 'p-4 rounded-xl border bg-rose-50 border-rose-200 text-rose-900 text-xs space-y-1';
-                resName.textContent = 'Siswa Tidak Ditemukan!';
-                resInfo.textContent = `NIS/Barcode "${inputNis}" tidak terdaftar dalam sistem.`;
-                resCard.classList.remove('hidden');
-                return;
-            }
+                const s = findSiswaByCode(inputNis);
+                const resCard = document.getElementById('scanResultCard');
+                const resName = document.getElementById('scanResName');
+                const resInfo = document.getElementById('scanResInfo');
 
-            if (currentUserRole === 'Pembina') {
-                const myRombelIds = rombelList.filter(r => r.pembinaId === currentPembinaId).map(r => r.id);
-                if (!myRombelIds.includes(s.rombelId)) {
-                    resCard.className = 'p-4 rounded-xl border bg-amber-50 border-amber-200 text-amber-900 text-xs space-y-1';
-                    resName.textContent = 'Akses Ditolak!';
-                    resInfo.textContent = `${s.nama} bukan merupakan siswa binaan rombel Anda.`;
+                if (!s) {
+                    resCard.className = 'p-4 rounded-xl border bg-rose-50 border-rose-200 text-rose-900 text-xs space-y-1';
+                    resName.textContent = 'Siswa Tidak Ditemukan!';
+                    resInfo.textContent = `NIS/Barcode "${inputNis}" tidak terdaftar dalam sistem.`;
                     resCard.classList.remove('hidden');
                     return;
                 }
+
+                if (currentUserRole === 'Pembina') {
+                    const myRombelIds = rombelList.filter(r => r.pembinaId === currentPembinaId).map(r => r.id);
+                    if (!myRombelIds.includes(s.rombelId)) {
+                        resCard.className = 'p-4 rounded-xl border bg-amber-50 border-amber-200 text-amber-900 text-xs space-y-1';
+                        resName.textContent = 'Akses Ditolak!';
+                        resInfo.textContent = `${s.nama} bukan merupakan siswa binaan rombel Anda.`;
+                        resCard.classList.remove('hidden');
+                        return;
+                    }
+                }
+
+                // Kunci Absensi: Jika siswa sudah ada di list absensi pada tanggal tersebut, hentikan proses
+                const sudahAbsen = getExistingAbsensiLog(s.id, tgl);
+                if (sudahAbsen) {
+                    tampilkanStatusSudahAbsen(s, tgl, sudahAbsen.waktu);
+                    return;
+                }
+
+                if (!s.absensi) s.absensi = { hadir: 0, izin: 0, alpa: 0 };
+                if (!Array.isArray(s.logs)) s.logs = [];
+
+                const timeNow = new Date().toLocaleTimeString('id-ID');
+                s.absensi.hadir = (s.absensi.hadir || 0) + 1;
+                s.logs.push({ tanggal: tgl, waktu: timeNow, status: 'Hadir' });
+                absensiLogs.unshift({ waktu: timeNow, tanggal: tgl, nis: s.id, nama: s.nama, status: 'Hadir' });
+
+                saveLocalData();
+
+                resCard.className = 'p-4 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-900 text-xs space-y-1';
+                resName.textContent = `✅ Berhasil Absen: ${s.nama}`;
+                resInfo.textContent = `NIS: ${s.id} | Tanggal: ${tgl} | Pukul: ${timeNow}`;
+                resCard.classList.remove('hidden');
+
+                document.getElementById('scanInputNis').value = '';
+                renderLogAbsensi();
+                renderRekapAbsensiTable();
+                showToast(`Presensi ${s.nama} tercatat & tersimpan ke Cloud!`);
+            } finally {
+                isProcessingScan = false;
             }
-
-            s.absensi.hadir = (s.absensi.hadir || 0) + 1;
-            const timeNow = new Date().toLocaleTimeString('id-ID');
-            absensiLogs.unshift({ waktu: timeNow, tanggal: tgl, nis: s.id, nama: s.nama, status: 'Hadir' });
-
-            // Simpan ke LocalStorage & langsung kirim ke JSONBin.io
-            saveLocalData();
-
-            resCard.className = 'p-4 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-900 text-xs space-y-1';
-            resName.textContent = `✅ Berhasil Absen: ${s.nama}`;
-            resInfo.textContent = `NIS: ${s.id} | Tanggal: ${tgl} | Pukul: ${timeNow}`;
-            resCard.classList.remove('hidden');
-
-            document.getElementById('scanInputNis').value = '';
-            renderLogAbsensi();
-            renderRekapAbsensiTable();
-            showToast(`Presensi ${s.nama} tercatat & tersimpan ke Cloud!`);
         }
 
         // --- RAPORT DAFTAR SISWA & CETAK / PDF ---
