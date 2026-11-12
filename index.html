@@ -1559,8 +1559,59 @@
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
-        // --- SISWA FILTERED UNTUK PEMBINA & ADMIN ---
+       // --- SISWA FILTERED UNTUK PEMBINA & ADMIN ---
+        function matchesRombelFilter(r, pemFilter, tktFilter) {
+            if (!r) return false;
+            if (pemFilter && pemFilter !== 'ALL') {
+                const rPem = String(r.peminatan || '').trim().toLowerCase();
+                const fPem = String(pemFilter).trim().toLowerCase();
+                if (rPem !== fPem && !rPem.includes(fPem) && !fPem.includes(rPem)) {
+                    return false;
+                }
+            }
+            if (tktFilter && tktFilter !== 'ALL') {
+                const rTkt = String(r.tingkat || '').trim().toLowerCase();
+                const fTkt = String(tktFilter).trim().toLowerCase();
+                if (rTkt !== fTkt && !rTkt.includes(fTkt) && !fTkt.includes(rTkt)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function onFilterPeminatanChange() {
+            populateRombelSelects();
+            renderSiswaTable();
+        }
+
+        function onFilterTingkatChange() {
+            populateRombelSelects();
+            renderSiswaTable();
+        }
+
         function populateRombelSelects() {
+            const pemFilter = document.getElementById('filterPeminatan')?.value || 'ALL';
+            const tktFilter = document.getElementById('filterTingkat')?.value || 'ALL';
+            const filterRombelEl = document.getElementById('filterRombelSiswa');
+
+            if (filterRombelEl) {
+                const prevRombelVal = filterRombelEl.value || 'ALL';
+                let filtered = rombelList;
+                if (currentUserRole === 'Pembina') {
+                    filtered = filtered.filter(r => r.pembinaId === currentPembinaId);
+                }
+                filtered = filtered.filter(r => matchesRombelFilter(r, pemFilter, tktFilter));
+
+                let html = '<option value="ALL">Semua Rombel</option>';
+                if (filtered.length > 0) {
+                    html += filtered.map(r => `<option value="${r.id}">${r.nama}</option>`).join('');
+                }
+                filterRombelEl.innerHTML = html;
+
+                const stillValid = prevRombelVal === 'ALL' || filtered.some(r => r.id === prevRombelVal);
+                filterRombelEl.value = stillValid ? prevRombelVal : 'ALL';
+            }
+
             // Populate Dropdown Filter Rombel pada Halaman Rekap Kehadiran
             const filterRekapEl = document.getElementById('filterRombelRekap');
             if (filterRekapEl) {
@@ -1579,6 +1630,8 @@
             }
 
             updateResetAbsensiButtonState();
+            updateModalRombelDropdown();
+        }
             updateModalRombelDropdown();
         }
 
