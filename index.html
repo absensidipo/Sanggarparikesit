@@ -1787,6 +1787,7 @@
                 renderRekapAbsensiTable();
                 renderSikapTable();
                 renderRaportPreview();
+                renderMateriList();
 
                 updateCloudStatusBadge('JSONBin Terhubung ✅', true);
                 if (!silent) {
@@ -1992,11 +1993,12 @@
             const qPembina = document.getElementById('quickListPembina');
             if (qPembina) {
                 qPembina.innerHTML = pembinaList.map(p => `
-                    <div class="py-2.5 flex items-center justify-between">
-                        <div>
-                            <p class="font-bold text-slate-800">${p.nama}</p>
-                            <p class="text-xs text-slate-400">${p.bidang} • ${p.telp}</p>
-                        </div>
+                <div class="space-y-1 pointer-events-none">
+                    <i data-lucide="upload-cloud" class="w-6 h-6 text-amber-500 mx-auto"></i>
+                    <p id="materiFileNameDisplay" class="text-xs font-semibold text-slate-600">Klik atau seret file ke sini</p>
+                    <p class="text-[10px] text-slate-400">Maks. 200KB. Format: PDF, JPG, PNG.</p>
+                </div>
+            </div>
                         <span class="px-2.5 py-1 bg-amber-50 text-amber-800 text-xs font-semibold rounded-lg">Aktif</span>
                     </div>
                 `).join('');
@@ -3785,8 +3787,9 @@
                 return;
             }
 
-            if (file.size > 2 * 1024 * 1024) {
-                showToast('Ukuran file terlalu besar! Maksimal 2MB untuk menjaga kestabilan sistem cloud.', 'warning');
+            // Batas maksimal file 200KB (Karena batas layanan gratis JSONBin.io)
+            if (file.size > 200 * 1024) {
+                showToast('Ukuran file terlalu besar! Maksimal 200KB agar berhasil tersimpan di database gratis.', 'warning');
                 event.target.value = '';
                 display.textContent = 'Klik atau seret file ke sini';
                 return;
