@@ -1273,82 +1273,90 @@
                 <button onclick="toggleModal('modalNotasiLagu')" class="text-red-200 hover:text-white bg-red-900/50 p-2 rounded-xl transition"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
             
-            <!-- Tabs & Toolbar -->
-            <div class="p-5 border-b border-slate-100 flex flex-wrap gap-4 justify-between items-center bg-slate-50 shrink-0">
-                <div class="flex bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
-                    <button id="tabBtnNotasi" onclick="switchMateriTab('Notasi')" class="px-6 py-2 rounded-lg font-bold text-sm bg-amber-500 text-slate-900 shadow-sm transition">Notasi Karawitan</button>
-                    <button id="tabBtnLagu" onclick="switchMateriTab('Lagu')" class="px-6 py-2 rounded-lg font-bold text-sm text-slate-500 hover:text-slate-800 transition">Lagu / Tembang</button>
-                </div>
-                <button onclick="openModalFormMateri()" class="bg-[#7B1113] hover:bg-red-900 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-sm">
-                    <i data-lucide="plus-circle" class="w-4 h-4"></i> <span id="btnTambahMateriText">Tambah Notasi</span>
-                </button>
-            </div>
-
-            <!-- Content Area (List) -->
-            <div class="flex-1 overflow-y-auto p-5 bg-white">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 uppercase tracking-wider">
-                                <th class="p-4 font-semibold w-12 text-center">No</th>
-                                <th class="p-4 font-semibold">Judul Materi</th>
-                                <th class="p-4 font-semibold w-32">Kategori Laras</th>
-                                <th class="p-4 font-semibold w-32">Tipe File</th>
-                                <th class="p-4 font-semibold text-right w-56">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableMateriBody" class="divide-y divide-slate-100 text-sm">
-                            <!-- Dynamic Content -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL 8: Form Tambah/Edit Notasi & Lagu -->
-    <div id="modalFormMateri" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[70] flex items-center justify-center hidden no-print">
-        <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl border border-slate-100 m-4">
-            <div class="flex justify-between items-center mb-5 border-b border-slate-100 pb-3">
-                <h3 id="modalFormMateriTitle" class="font-bold text-lg text-slate-800">Tambah Materi</h3>
-                <button onclick="toggleModal('modalFormMateri')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
-            </div>
-            <form onsubmit="handleSaveMateri(event)" class="space-y-4">
-                <input type="hidden" id="editMateriId">
-                <input type="hidden" id="inputMateriKategori" value="Notasi">
-                
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Judul <span id="lblJudulMateri">Notasi</span></label>
-                    <input type="text" id="inputMateriJudul" required class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-red-800 focus:outline-none" placeholder="Contoh: Ladrang Pangkur">
-                </div>
-                
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Kategori Laras</label>
-                    <select id="inputMateriLaras" class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-red-800 focus:outline-none bg-white">
-                        <option value="Slendro">Slendro</option>
-                        <option value="Pelog">Pelog</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Upload File (PDF / JPEG / PNG)</label>
-                    <div class="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-50 transition cursor-pointer relative">
-                        <input type="file" id="inputMateriFile" accept=".pdf, image/jpeg, image/png, image/jpg" onchange="handleMateriFileUpload(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                        <div class="space-y-1 pointer-events-none">
-                            <i data-lucide="upload-cloud" class="w-6 h-6 text-amber-500 mx-auto"></i>
-                            <p id="materiFileNameDisplay" class="text-xs font-semibold text-slate-600">Klik atau seret file ke sini</p>
-                            <p class="text-[10px] text-slate-400">Maks. 2MB. Format: PDF, JPG, PNG.</p>
-                        </div>
+            <!-- LIST CONTAINER -->
+            <div id="materiListContainer" class="flex flex-col flex-1 overflow-hidden">
+                <!-- Tabs & Toolbar -->
+                <div class="p-5 border-b border-slate-100 flex flex-wrap gap-4 justify-between items-center bg-slate-50 shrink-0">
+                    <div class="flex bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
+                        <button id="tabBtnNotasi" onclick="switchMateriTab('Notasi')" class="px-6 py-2 rounded-lg font-bold text-sm bg-amber-500 text-slate-900 shadow-sm transition">Notasi Karawitan</button>
+                        <button id="tabBtnLagu" onclick="switchMateriTab('Lagu')" class="px-6 py-2 rounded-lg font-bold text-sm text-slate-500 hover:text-slate-800 transition">Lagu / Tembang</button>
                     </div>
-                </div>
-
-                <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
-                    <button type="button" onclick="toggleModal('modalFormMateri')" class="px-4 py-2.5 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl hover:bg-slate-50">Batal</button>
-                    <button type="submit" class="px-4 py-2.5 bg-[#7B1113] hover:bg-red-900 text-white text-xs font-bold rounded-xl shadow-sm flex items-center gap-2">
-                        <i data-lucide="save" class="w-4 h-4"></i> Simpan Materi
+                    <button onclick="openFormMateri()" class="bg-[#7B1113] hover:bg-red-900 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-sm">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i> <span id="btnTambahMateriText">Tambah Notasi</span>
                     </button>
                 </div>
-            </form>
+
+                <!-- Content Area (List) -->
+                <div class="flex-1 overflow-y-auto p-5 bg-white">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 uppercase tracking-wider">
+                                    <th class="p-4 font-semibold w-12 text-center">No</th>
+                                    <th class="p-4 font-semibold">Judul Materi</th>
+                                    <th class="p-4 font-semibold w-32">Kategori Laras</th>
+                                    <th class="p-4 font-semibold w-32">Tipe File</th>
+                                    <th class="p-4 font-semibold text-right w-56">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableMateriBody" class="divide-y divide-slate-100 text-sm">
+                                <!-- Dynamic Content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FORM CONTAINER (Ganti Popup Menjadi Inline) -->
+            <div id="materiFormContainer" class="hidden flex-col flex-1 overflow-hidden bg-slate-50">
+                <div class="p-5 border-b border-slate-200 bg-white flex items-center gap-4 shrink-0">
+                    <button type="button" onclick="closeFormMateri()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition" title="Kembali ke Daftar"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+                    <div>
+                        <h3 id="inlineFormMateriTitle" class="font-bold text-lg text-slate-800">Tambah Materi</h3>
+                        <p class="text-xs text-slate-500">Lengkapi detail dokumen materi</p>
+                    </div>
+                </div>
+                <div class="flex-1 overflow-y-auto p-5 sm:p-8">
+                    <form onsubmit="handleSaveMateri(event)" class="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm max-w-2xl mx-auto space-y-5">
+                        <input type="hidden" id="editMateriId">
+                        <input type="hidden" id="inputMateriKategori" value="Notasi">
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Judul <span id="lblJudulMateri">Notasi</span></label>
+                            <input type="text" id="inputMateriJudul" required class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-red-800 focus:outline-none" placeholder="Contoh: Ladrang Pangkur">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Kategori Laras</label>
+                            <select id="inputMateriLaras" class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-red-800 focus:outline-none bg-white">
+                                <option value="Slendro">Slendro</option>
+                                <option value="Pelog">Pelog</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Upload File (PDF / JPEG / PNG)</label>
+                            <div class="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:bg-slate-50 transition cursor-pointer relative bg-slate-50/50">
+                                <input type="file" id="inputMateriFile" accept=".pdf, image/jpeg, image/png, image/jpg" onchange="handleMateriFileUpload(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                <div class="space-y-2 pointer-events-none">
+                                    <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+                                    </div>
+                                    <p id="materiFileNameDisplay" class="text-sm font-semibold text-slate-700">Klik atau seret file ke sini</p>
+                                    <p class="text-xs text-slate-400">Ukuran maksimal 200KB. Format: PDF, JPG, PNG.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end gap-3 pt-6 border-t border-slate-100">
+                            <button type="button" onclick="closeFormMateri()" class="px-5 py-2.5 border border-slate-200 text-slate-600 text-sm font-bold rounded-xl hover:bg-slate-50 transition">Batal</button>
+                            <button type="submit" class="px-5 py-2.5 bg-[#7B1113] hover:bg-red-900 text-white text-sm font-bold rounded-xl shadow-sm flex items-center gap-2 transition">
+                                <i data-lucide="save" class="w-4 h-4"></i> Simpan Materi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1606,11 +1614,16 @@
             const keyInp = document.getElementById('inputJsonBinKey');
             const binInp = document.getElementById('inputJsonBinId');
             const btn = document.getElementById('btnAutoCreateBin');
-            const apiKey = keyInp ? keyInp.value.trim() : '';
+            // Bersihkan spasi atau karakter tak terlihat yang mungkin ikut tersalin
+            const apiKey = keyInp ? keyInp.value.replace(/\s+/g, '').trim() : '';
 
             if (!apiKey) {
                 showToast('Masukkan X-Master-Key dari JSONBin.io terlebih dahulu!', 'warning');
                 return;
+            }
+            
+            if (!apiKey.startsWith('$2a$')) {
+                 showToast('Format X-Master-Key sepertinya tidak valid. Biasanya diawali dengan $2a$', 'warning');
             }
 
             if (btn) {
@@ -1632,7 +1645,9 @@
 
                 const result = await response.json();
                 if (!response.ok) {
-                    throw new Error(result.message || 'Gagal membuat Bin baru. Periksa X-Master-Key Anda.');
+                    console.error("JSONBin Create Error:", result);
+                    const errMsg = typeof result.message === 'string' ? result.message : JSON.stringify(result.message || result);
+                    throw new Error(errMsg || 'Gagal membuat Bin baru. Periksa X-Master-Key Anda.');
                 }
 
                 const createdId = result.metadata && result.metadata.id;
@@ -1646,7 +1661,8 @@
                     showToast('Bin baru berhasil dibuat & data awal tersimpan ke Cloud!');
                 }
             } catch (err) {
-                showToast(err.message || 'Gagal terhubung ke JSONBin.io', 'error');
+                console.error("JSONBin Catch Error:", err);
+                showToast('Gagal: ' + (err.message || 'Tidak dapat terhubung ke JSONBin.io'), 'error');
             } finally {
                 if (btn) {
                     btn.disabled = false;
@@ -1657,8 +1673,8 @@
 
         // Menyimpan konfigurasi & menarik/menguji koneksi ke JSONBin.io
         async function saveAndConnectJsonBin() {
-            const apiKey = document.getElementById('inputJsonBinKey')?.value.trim() || '';
-            const binId = document.getElementById('inputJsonBinId')?.value.trim() || '';
+            const apiKey = document.getElementById('inputJsonBinKey')?.value.replace(/\s+/g, '').trim() || '';
+            const binId = document.getElementById('inputJsonBinId')?.value.replace(/\s+/g, '').trim() || '';
 
             if (!apiKey) {
                 showToast('X-Master-Key wajib diisi!', 'warning');
@@ -1752,7 +1768,9 @@
 
                 const result = await response.json();
                 if (!response.ok) {
-                    throw new Error(result.message || `HTTP ${response.status}`);
+                    console.error("JSONBin Load Error:", result);
+                    const errMsg = typeof result.message === 'string' ? result.message : JSON.stringify(result.message || result);
+                    throw new Error(errMsg || `HTTP ${response.status}`);
                 }
 
                 const record = result.record || {};
@@ -1993,12 +2011,11 @@
             const qPembina = document.getElementById('quickListPembina');
             if (qPembina) {
                 qPembina.innerHTML = pembinaList.map(p => `
-                <div class="space-y-1 pointer-events-none">
-                    <i data-lucide="upload-cloud" class="w-6 h-6 text-amber-500 mx-auto"></i>
-                    <p id="materiFileNameDisplay" class="text-xs font-semibold text-slate-600">Klik atau seret file ke sini</p>
-                    <p class="text-[10px] text-slate-400">Maks. 200KB. Format: PDF, JPG, PNG.</p>
-                </div>
-            </div>
+                    <div class="py-2.5 flex items-center justify-between">
+                        <div>
+                            <p class="font-bold text-slate-800">${p.nama}</p>
+                            <p class="text-xs text-slate-400">${p.bidang}</p>
+                        </div>
                         <span class="px-2.5 py-1 bg-amber-50 text-amber-800 text-xs font-semibold rounded-lg">Aktif</span>
                     </div>
                 `).join('');
@@ -3740,7 +3757,7 @@
                         </td>
                         <td class="p-4 text-right space-x-1.5">
                             <button onclick="previewMateri('${m.id}')" class="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold rounded-lg text-xs transition inline-flex items-center gap-1"><i data-lucide="eye" class="w-3.5 h-3.5"></i> Lihat</button>
-                            <button onclick="openModalFormMateri('${m.id}')" class="p-1.5 text-slate-400 hover:text-sky-600 transition bg-slate-50 hover:bg-sky-50 rounded-lg border border-transparent hover:border-sky-200" title="Edit"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                            <button onclick="openFormMateri('${m.id}')" class="p-1.5 text-slate-400 hover:text-sky-600 transition bg-slate-50 hover:bg-sky-50 rounded-lg border border-transparent hover:border-sky-200" title="Edit"><i data-lucide="pencil" class="w-4 h-4"></i></button>
                             <button onclick="deleteMateri('${m.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 transition bg-slate-50 hover:bg-rose-50 rounded-lg border border-transparent hover:border-rose-200" title="Hapus"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                         </td>
                     </tr>
@@ -3749,9 +3766,9 @@
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
-        function openModalFormMateri(id = null) {
+        function openFormMateri(id = null) {
             const isLagu = currentMateriTab === 'Lagu';
-            document.getElementById('modalFormMateriTitle').textContent = id ? `Edit ${currentMateriTab}` : `Tambah ${currentMateriTab} Baru`;
+            document.getElementById('inlineFormMateriTitle').textContent = id ? `Edit ${currentMateriTab}` : `Tambah ${currentMateriTab} Baru`;
             document.getElementById('lblJudulMateri').textContent = currentMateriTab;
             document.getElementById('inputMateriKategori').value = currentMateriTab;
             
@@ -3774,7 +3791,24 @@
                     document.getElementById('materiFileNameDisplay').textContent = '(File sudah tersimpan, upload ulang untuk mengganti)';
                 }
             }
-            toggleModal('modalFormMateri');
+            
+            // Switch dari tabel list ke form inline
+            document.getElementById('materiListContainer').classList.add('hidden');
+            document.getElementById('materiListContainer').classList.remove('flex');
+            
+            document.getElementById('materiFormContainer').classList.remove('hidden');
+            document.getElementById('materiFormContainer').classList.add('flex');
+            
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function closeFormMateri() {
+            // Switch kembali dari form inline ke tabel list
+            document.getElementById('materiFormContainer').classList.add('hidden');
+            document.getElementById('materiFormContainer').classList.remove('flex');
+            
+            document.getElementById('materiListContainer').classList.remove('hidden');
+            document.getElementById('materiListContainer').classList.add('flex');
         }
 
         function handleMateriFileUpload(event) {
@@ -3842,7 +3876,7 @@
             }
 
             saveLocalData();
-            toggleModal('modalFormMateri');
+            closeFormMateri();
             renderMateriList();
             showToast(`Data ${kategori} berhasil disimpan!`);
         }
