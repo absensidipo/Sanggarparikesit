@@ -75,7 +75,10 @@
                 <button onclick="processLoginPembina()" class="w-full bg-[#7B1113] hover:bg-red-900 text-white font-bold py-3 rounded-xl transition text-sm shadow-md">Masuk Sebagai Pembina</button>
             </div>
 
-            <div class="text-center pt-2 border-t border-slate-100">
+            <div class="text-center pt-2 border-t border-slate-100 mt-4">
+                <button type="button" onclick="openModalNotasiLagu()" class="w-full mb-4 flex items-center justify-center gap-2 py-3 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-xl font-bold transition text-sm shadow-sm">
+                    <i data-lucide="music" class="w-5 h-5"></i> Akses Pustaka Notasi & Lagu
+                </button>
                 <p class="text-[11px] text-slate-400">Jl. Kebumen - Banjarnegara KM 25, Karanggayam, Kebumen 54365</p>
             </div>
         </div>
@@ -1255,6 +1258,126 @@
         </div>
     </div>
 
+    <!-- MODAL 7: Pustaka Notasi & Lagu (Akses Publik di Halaman Login) -->
+    <div id="modalNotasiLagu" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center hidden no-print">
+        <div class="bg-white rounded-3xl w-full max-w-4xl h-[85vh] flex flex-col shadow-2xl border border-slate-100 m-4 overflow-hidden">
+            <!-- Header Modal -->
+            <div class="bg-[#7B1113] p-5 flex justify-between items-center text-white shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center font-bold text-xl text-slate-900 shadow-md">🎼</div>
+                    <div>
+                        <h3 class="font-extrabold text-lg tracking-wide">Pustaka Notasi & Lagu</h3>
+                        <p class="text-xs text-red-200">Koleksi materi pembelajaran Sanggar Parikesit</p>
+                    </div>
+                </div>
+                <button onclick="toggleModal('modalNotasiLagu')" class="text-red-200 hover:text-white bg-red-900/50 p-2 rounded-xl transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            
+            <!-- Tabs & Toolbar -->
+            <div class="p-5 border-b border-slate-100 flex flex-wrap gap-4 justify-between items-center bg-slate-50 shrink-0">
+                <div class="flex bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
+                    <button id="tabBtnNotasi" onclick="switchMateriTab('Notasi')" class="px-6 py-2 rounded-lg font-bold text-sm bg-amber-500 text-slate-900 shadow-sm transition">Notasi Karawitan</button>
+                    <button id="tabBtnLagu" onclick="switchMateriTab('Lagu')" class="px-6 py-2 rounded-lg font-bold text-sm text-slate-500 hover:text-slate-800 transition">Lagu / Tembang</button>
+                </div>
+                <button onclick="openModalFormMateri()" class="bg-[#7B1113] hover:bg-red-900 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-sm">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i> <span id="btnTambahMateriText">Tambah Notasi</span>
+                </button>
+            </div>
+
+            <!-- Content Area (List) -->
+            <div class="flex-1 overflow-y-auto p-5 bg-white">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 uppercase tracking-wider">
+                                <th class="p-4 font-semibold w-12 text-center">No</th>
+                                <th class="p-4 font-semibold">Judul Materi</th>
+                                <th class="p-4 font-semibold w-32">Kategori Laras</th>
+                                <th class="p-4 font-semibold w-32">Tipe File</th>
+                                <th class="p-4 font-semibold text-right w-56">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableMateriBody" class="divide-y divide-slate-100 text-sm">
+                            <!-- Dynamic Content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 8: Form Tambah/Edit Notasi & Lagu -->
+    <div id="modalFormMateri" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[70] flex items-center justify-center hidden no-print">
+        <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl border border-slate-100 m-4">
+            <div class="flex justify-between items-center mb-5 border-b border-slate-100 pb-3">
+                <h3 id="modalFormMateriTitle" class="font-bold text-lg text-slate-800">Tambah Materi</h3>
+                <button onclick="toggleModal('modalFormMateri')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form onsubmit="handleSaveMateri(event)" class="space-y-4">
+                <input type="hidden" id="editMateriId">
+                <input type="hidden" id="inputMateriKategori" value="Notasi">
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Judul <span id="lblJudulMateri">Notasi</span></label>
+                    <input type="text" id="inputMateriJudul" required class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-red-800 focus:outline-none" placeholder="Contoh: Ladrang Pangkur">
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Kategori Laras</label>
+                    <select id="inputMateriLaras" class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-red-800 focus:outline-none bg-white">
+                        <option value="Slendro">Slendro</option>
+                        <option value="Pelog">Pelog</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Upload File (PDF / JPEG / PNG)</label>
+                    <div class="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-50 transition cursor-pointer relative">
+                        <input type="file" id="inputMateriFile" accept=".pdf, image/jpeg, image/png, image/jpg" onchange="handleMateriFileUpload(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                        <div class="space-y-1 pointer-events-none">
+                            <i data-lucide="upload-cloud" class="w-6 h-6 text-amber-500 mx-auto"></i>
+                            <p id="materiFileNameDisplay" class="text-xs font-semibold text-slate-600">Klik atau seret file ke sini</p>
+                            <p class="text-[10px] text-slate-400">Maks. 2MB. Format: PDF, JPG, PNG.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="toggleModal('modalFormMateri')" class="px-4 py-2.5 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl hover:bg-slate-50">Batal</button>
+                    <button type="submit" class="px-4 py-2.5 bg-[#7B1113] hover:bg-red-900 text-white text-xs font-bold rounded-xl shadow-sm flex items-center gap-2">
+                        <i data-lucide="save" class="w-4 h-4"></i> Simpan Materi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 9: Preview Notasi/Lagu (PDF & Image Viewer) -->
+    <div id="modalPreviewMateri" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[70] flex flex-col items-center justify-center hidden no-print p-4 sm:p-8">
+        <div class="w-full max-w-5xl flex justify-between items-center mb-4 text-white">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-amber-500 text-slate-900 rounded-lg"><i data-lucide="file-text" class="w-5 h-5"></i></div>
+                <div>
+                    <h3 id="previewMateriTitle" class="font-bold text-lg">Preview Dokumen</h3>
+                    <p id="previewMateriMeta" class="text-xs text-slate-300">Laras Slendro</p>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button id="btnDownloadPreview" onclick="downloadCurrentMateri()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition flex items-center gap-2 shadow-sm">
+                    <i data-lucide="download" class="w-4 h-4"></i> Unduh File
+                </button>
+                <button onclick="toggleModal('modalPreviewMateri')" class="bg-white/10 hover:bg-white/20 text-white p-2 rounded-xl transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+        <div class="w-full max-w-5xl flex-1 bg-white rounded-2xl overflow-hidden shadow-2xl relative flex items-center justify-center">
+            <!-- Inject Iframe for PDF or Img for Image -->
+            <div id="previewMateriContainer" class="w-full h-full flex items-center justify-center bg-slate-100">
+                <div class="text-slate-400 text-center"><i data-lucide="loader" class="w-8 h-8 animate-spin mx-auto mb-2"></i> Memuat Dokumen...</div>
+            </div>
+        </div>
+    </div>
 
     <!-- Script Logic -->
     <script>
@@ -1341,6 +1464,13 @@
 
         let absensiLogs = JSON.parse(localStorage.getItem('parikesit_absensi_logs') || '[]');
 
+        // NEW STATE: Notasi & Lagu Library
+        let materiList = JSON.parse(localStorage.getItem('parikesit_materi')) || [];
+        let currentMateriTab = 'Notasi';
+        let tempMateriBase64 = '';
+        let tempMateriMime = '';
+        let activePreviewMateriId = null;
+
         function normalizeAbsensi(abs) {
             const src = abs || {};
             return {
@@ -1419,6 +1549,7 @@
             localStorage.setItem('parikesit_rombel', JSON.stringify(rombelList));
             localStorage.setItem('parikesit_siswa', JSON.stringify(siswaList));
             localStorage.setItem('parikesit_absensi_logs', JSON.stringify(absensiLogs));
+            localStorage.setItem('parikesit_materi', JSON.stringify(materiList));
             if (sanggarLogoBase64) {
                 localStorage.setItem('parikesit_sanggar_logo', sanggarLogoBase64);
             }
@@ -1436,6 +1567,7 @@
                 rombel: rombelList,
                 siswa: siswaList,
                 absensiLogs: absensiLogs,
+                materi: materiList,
                 logo: sanggarLogoBase64 || ''
             };
         }
@@ -1636,6 +1768,9 @@
                 }
                 if (Array.isArray(record.absensiLogs)) {
                     absensiLogs = record.absensiLogs;
+                }
+                if (Array.isArray(record.materi)) {
+                    materiList = record.materi;
                 }
                 if (typeof record.logo === 'string' && record.logo.length > 0) {
                     sanggarLogoBase64 = record.logo;
@@ -3551,6 +3686,215 @@
             toggleModal('modalNilai');
             renderNilaiTable();
             renderRaportPreview();
+        }
+
+        // --- PUSTAKA NOTASI & LAGU (PUBLIK) ---
+        function openModalNotasiLagu() {
+            toggleModal('modalNotasiLagu');
+            switchMateriTab('Notasi');
+        }
+
+        function switchMateriTab(tabName) {
+            currentMateriTab = tabName;
+            const btnNotasi = document.getElementById('tabBtnNotasi');
+            const btnLagu = document.getElementById('tabBtnLagu');
+            const btnText = document.getElementById('btnTambahMateriText');
+
+            if (tabName === 'Notasi') {
+                btnNotasi.className = 'px-6 py-2 rounded-lg font-bold text-sm bg-amber-500 text-slate-900 shadow-sm transition';
+                btnLagu.className = 'px-6 py-2 rounded-lg font-bold text-sm text-slate-500 hover:text-slate-800 transition';
+                btnText.textContent = 'Tambah Notasi';
+            } else {
+                btnLagu.className = 'px-6 py-2 rounded-lg font-bold text-sm bg-amber-500 text-slate-900 shadow-sm transition';
+                btnNotasi.className = 'px-6 py-2 rounded-lg font-bold text-sm text-slate-500 hover:text-slate-800 transition';
+                btnText.textContent = 'Tambah Lagu';
+            }
+            renderMateriList();
+        }
+
+        function renderMateriList() {
+            const tbody = document.getElementById('tableMateriBody');
+            if (!tbody) return;
+
+            const filtered = materiList.filter(m => m.kategori === currentMateriTab);
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400 font-medium bg-slate-50/50">Belum ada data ${currentMateriTab} yang diunggah.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map((m, idx) => {
+                const icon = m.mime.includes('pdf') ? 'file-text' : 'image';
+                const color = m.laras === 'Slendro' ? 'bg-sky-100 text-sky-800 border-sky-200' : 'bg-emerald-100 text-emerald-800 border-emerald-200';
+                return `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-4 text-center font-bold text-slate-400">${idx + 1}</td>
+                        <td class="p-4 font-bold text-slate-800">${m.judul}</td>
+                        <td class="p-4"><span class="px-2.5 py-1 text-[11px] font-bold rounded-lg border ${color}">${m.laras}</span></td>
+                        <td class="p-4">
+                            <span class="flex items-center gap-1.5 text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg w-max border border-slate-200">
+                                <i data-lucide="${icon}" class="w-3.5 h-3.5"></i> ${m.mime.includes('pdf') ? 'PDF' : 'Gambar'}
+                            </span>
+                        </td>
+                        <td class="p-4 text-right space-x-1.5">
+                            <button onclick="previewMateri('${m.id}')" class="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold rounded-lg text-xs transition inline-flex items-center gap-1"><i data-lucide="eye" class="w-3.5 h-3.5"></i> Lihat</button>
+                            <button onclick="openModalFormMateri('${m.id}')" class="p-1.5 text-slate-400 hover:text-sky-600 transition bg-slate-50 hover:bg-sky-50 rounded-lg border border-transparent hover:border-sky-200" title="Edit"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                            <button onclick="deleteMateri('${m.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 transition bg-slate-50 hover:bg-rose-50 rounded-lg border border-transparent hover:border-rose-200" title="Hapus"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function openModalFormMateri(id = null) {
+            const isLagu = currentMateriTab === 'Lagu';
+            document.getElementById('modalFormMateriTitle').textContent = id ? `Edit ${currentMateriTab}` : `Tambah ${currentMateriTab} Baru`;
+            document.getElementById('lblJudulMateri').textContent = currentMateriTab;
+            document.getElementById('inputMateriKategori').value = currentMateriTab;
+            
+            document.getElementById('editMateriId').value = '';
+            document.getElementById('inputMateriJudul').value = '';
+            document.getElementById('inputMateriLaras').value = 'Slendro';
+            document.getElementById('inputMateriFile').value = '';
+            document.getElementById('materiFileNameDisplay').textContent = 'Klik atau seret file ke sini';
+            tempMateriBase64 = '';
+            tempMateriMime = '';
+
+            if (id) {
+                const m = materiList.find(x => x.id === id);
+                if (m) {
+                    document.getElementById('editMateriId').value = m.id;
+                    document.getElementById('inputMateriJudul').value = m.judul;
+                    document.getElementById('inputMateriLaras').value = m.laras;
+                    tempMateriBase64 = m.base64;
+                    tempMateriMime = m.mime;
+                    document.getElementById('materiFileNameDisplay').textContent = '(File sudah tersimpan, upload ulang untuk mengganti)';
+                }
+            }
+            toggleModal('modalFormMateri');
+        }
+
+        function handleMateriFileUpload(event) {
+            const file = event.target.files[0];
+            const display = document.getElementById('materiFileNameDisplay');
+            if (!file) {
+                display.textContent = 'Klik atau seret file ke sini';
+                tempMateriBase64 = '';
+                tempMateriMime = '';
+                return;
+            }
+
+            if (file.size > 2 * 1024 * 1024) {
+                showToast('Ukuran file terlalu besar! Maksimal 2MB untuk menjaga kestabilan sistem cloud.', 'warning');
+                event.target.value = '';
+                display.textContent = 'Klik atau seret file ke sini';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                tempMateriBase64 = e.target.result;
+                tempMateriMime = file.type;
+                display.textContent = `✅ ${file.name}`;
+                display.classList.replace('text-slate-600', 'text-emerald-600');
+            };
+            reader.onerror = function() {
+                showToast('Gagal membaca file.', 'error');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function handleSaveMateri(e) {
+            e.preventDefault();
+            const editId = document.getElementById('editMateriId').value;
+            const kategori = document.getElementById('inputMateriKategori').value;
+            const judul = document.getElementById('inputMateriJudul').value;
+            const laras = document.getElementById('inputMateriLaras').value;
+
+            if (!tempMateriBase64) {
+                showToast('Silakan upload file dokumen terlebih dahulu!', 'warning');
+                return;
+            }
+
+            if (editId) {
+                const m = materiList.find(x => x.id === editId);
+                if (m) {
+                    m.judul = judul;
+                    m.laras = laras;
+                    m.base64 = tempMateriBase64;
+                    m.mime = tempMateriMime;
+                }
+            } else {
+                const newId = 'MTR-' + Date.now().toString(36).toUpperCase();
+                materiList.push({
+                    id: newId,
+                    kategori: kategori,
+                    judul: judul,
+                    laras: laras,
+                    base64: tempMateriBase64,
+                    mime: tempMateriMime,
+                    timestamp: new Date().toISOString()
+                });
+            }
+
+            saveLocalData();
+            toggleModal('modalFormMateri');
+            renderMateriList();
+            showToast(`Data ${kategori} berhasil disimpan!`);
+        }
+
+        function deleteMateri(id) {
+            customConfirm('Yakin ingin menghapus dokumen materi ini secara permanen?', () => {
+                materiList = materiList.filter(m => m.id !== id);
+                saveLocalData();
+                renderMateriList();
+                showToast('Dokumen berhasil dihapus.');
+            });
+        }
+
+        function previewMateri(id) {
+            const m = materiList.find(x => x.id === id);
+            if (!m) return;
+            
+            activePreviewMateriId = m.id;
+            document.getElementById('previewMateriTitle').textContent = m.judul;
+            document.getElementById('previewMateriMeta').textContent = `Kategori: ${m.kategori} | Laras: ${m.laras}`;
+            
+            const container = document.getElementById('previewMateriContainer');
+            container.innerHTML = ''; // Clear loading
+
+            if (m.mime.includes('pdf')) {
+                const iframe = document.createElement('iframe');
+                iframe.src = m.base64;
+                iframe.className = 'w-full h-full border-0';
+                container.appendChild(iframe);
+            } else if (m.mime.includes('image')) {
+                const img = document.createElement('img');
+                img.src = m.base64;
+                img.className = 'max-w-full max-h-full object-contain p-4';
+                container.appendChild(img);
+            } else {
+                container.innerHTML = `<div class="text-slate-500 font-medium">Format file tidak didukung untuk preview langsung. Silakan unduh.</div>`;
+            }
+
+            toggleModal('modalPreviewMateri');
+        }
+
+        function downloadCurrentMateri() {
+            if (!activePreviewMateriId) return;
+            const m = materiList.find(x => x.id === activePreviewMateriId);
+            if (!m) return;
+
+            const link = document.createElement('a');
+            const safeName = m.judul.replace(/[^a-zA-Z0-9_-]+/g, '_');
+            const ext = m.mime.includes('pdf') ? 'pdf' : (m.mime.includes('png') ? 'png' : 'jpg');
+            link.download = `${m.kategori}_${m.laras}_${safeName}.${ext}`;
+            link.href = m.base64;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast(`Mengunduh file: ${link.download}`);
         }
 
         function toggleMobileMenu() {
