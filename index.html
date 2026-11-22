@@ -1557,6 +1557,8 @@
         let currentMateriTab = 'Notasi';
         let tempMateriBase64 = '';
         let tempMateriMime = '';
+        const GAS_UPLOAD_URL = 'https://script.google.com/macros/s/AKfycbyeIQ6G0apOEiEe4I7Lj_K3twN6aObbIXvO2nKYzNoqJZaHbZDs4i0TnBr-cBZk_EQs/exec';
+        let tempMateriFileName = '';
         let activePreviewMateriId = null;
 
         function normalizeAbsensi(abs) {
@@ -4048,19 +4050,20 @@ function onAbsensiTanggalChange() {
             document.getElementById('materiListContainer').classList.add('flex');
         }
 
-        function handleMateriFileUpload(event) {
+       function handleMateriFileUpload(event) {
             const file = event.target.files[0];
             const display = document.getElementById('materiFileNameDisplay');
             if (!file) {
                 display.textContent = 'Klik atau seret file ke sini';
                 tempMateriBase64 = '';
                 tempMateriMime = '';
+                tempMateriFileName = '';
                 return;
             }
 
-            // Batas maksimal file 200KB (Karena batas layanan gratis JSONBin.io)
-            if (file.size > 200 * 1024) {
-                showToast('Ukuran file terlalu besar! Maksimal 200KB agar berhasil tersimpan di database gratis.', 'warning');
+            // Batas dinaikkan menjadi 10 MB (disimpan ke Google Drive)
+            if (file.size > 10 * 1024 * 1024) {
+                showToast('Ukuran file terlalu besar! Maksimal 10 MB.', 'warning');
                 event.target.value = '';
                 display.textContent = 'Klik atau seret file ke sini';
                 return;
@@ -4070,7 +4073,8 @@ function onAbsensiTanggalChange() {
             reader.onload = function(e) {
                 tempMateriBase64 = e.target.result;
                 tempMateriMime = file.type;
-                display.textContent = `✅ ${file.name}`;
+                tempMateriFileName = file.name;
+                display.textContent = `✅ ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
                 display.classList.replace('text-slate-600', 'text-emerald-600');
             };
             reader.onerror = function() {
@@ -4079,25 +4083,84 @@ function onAbsensiTanggalChange() {
             reader.readAsDataURL(file);
         }
 
-        function handleSaveMateri(e) {
+        async function handleSaveMateri(e) {
             e.preventDefault();
             const editId = document.getElementById('editMateriId').value;
             const kategori = document.getElementById('inputMateriKategori').value;
             const judul = document.getElementById('inputMateriJudul').value;
             const laras = document.getElementById('inputMateriLaras').value;
+            const submitBtn = e.target.querySelector('button[type="submit"]');
 
-            if (!tempMateriBase64) {
+            const existingItem = editId ? materiList.find(x => x.id === editId) : null;
+            const isNewFileUploaded = Boolean(tempMateriBase64 && tempMateriFileName);
+
+            if (!isNewFileUploaded && !existingItem) {
                 showToast('Silakan upload file dokumen terlebih dahulu!', 'warning');
                 return;
             }
 
-            if (editId) {
-                const m = materiList.find(x => x.id === editId);
-                if (m) {
-                    m.judul = judul;
-                    m.laras = laras;
-                    m.base64 = tempMateriBase64;
-                    m.mime = tempMateriMime;
+            let previewUrl = existingItem?.previewUrl || '';
+            let downloadUrl = existingItem?.downloadUrl || '';
+            let driveId = existingItem?.driveId || '';
+            let mimeToSave = tempMateriMime || existingItem?.mime || 'application/pdf';
+
+            // Jika ada file baru, upload ke Google Drive via Apps Script
+            if (isNewFileUploaded) {
+                if (!GAS_UPLOAD_URL || GAS_UPLOAD_URL.includes('TEMPEL_URL')) {
+                    showToast('URL Google Apps Script belum dipasang di kode!', 'error');
+                    return;
+                }
+
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '⏳ Mengunggah ke Drive...';
+                }
+
+                try {
+                    const res = await fetch(GAS_UPLOAD_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({
+                            filename: `${kategori}_${laras}_${judul}_${tempMateriFileName}`,
+                            mime: tempMateriMime,
+                            base64: tempMateriBase64
+                        })
+                    });
+
+                    const result = await res.json();
+                    if (result.status !== 'success') {
+                        throw new Error(result.message || 'Gagal upload ke Google Drive');
+                    }
+
+                    driveId = result.fileId;
+                    previewUrl = result.previewUrl;
+                    downloadUrl = result.downloadUrl;
+                } catch (err) {
+                    showToast('Gagal upload ke Drive: ' + err.message, 'error');
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Simpan Materi';
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    }
+                    return;
+                } finally {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Simpan Materi';
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    }
+                }
+            }
+
+            if (editId && existingItem) {
+                existingItem.judul = judul;
+                existingItem.laras = laras;
+                existingItem.mime = mimeToSave;
+                if (driveId) {
+                    existingItem.driveId = driveId;
+                    existingItem.previewUrl = previewUrl;
+                    existingItem.downloadUrl = downloadUrl;
+                    delete existingItem.base64; // Hapus base64 lama agar JSONBin ringan
                 }
             } else {
                 const newId = 'MTR-' + Date.now().toString(36).toUpperCase();
@@ -4106,44 +4169,46 @@ function onAbsensiTanggalChange() {
                     kategori: kategori,
                     judul: judul,
                     laras: laras,
-                    base64: tempMateriBase64,
-                    mime: tempMateriMime,
+                    mime: mimeToSave,
+                    driveId: driveId,
+                    previewUrl: previewUrl,
+                    downloadUrl: downloadUrl,
                     timestamp: new Date().toISOString()
                 });
             }
 
+            tempMateriBase64 = '';
+            tempMateriFileName = '';
             saveLocalData();
             closeFormMateri();
             renderMateriList();
-            showToast(`Data ${kategori} berhasil disimpan!`);
-        }
-
-        function deleteMateri(id) {
-            customConfirm('Yakin ingin menghapus dokumen materi ini secara permanen?', () => {
-                materiList = materiList.filter(m => m.id !== id);
-                saveLocalData();
-                renderMateriList();
-                showToast('Dokumen berhasil dihapus.');
-            });
+            showToast(`Data ${kategori} berhasil diunggah ke Drive & disimpan!`);
         }
 
         function previewMateri(id) {
             const m = materiList.find(x => x.id === id);
             if (!m) return;
-            
+
             activePreviewMateriId = m.id;
             document.getElementById('previewMateriTitle').textContent = m.judul;
             document.getElementById('previewMateriMeta').textContent = `Kategori: ${m.kategori} | Laras: ${m.laras}`;
-            
-            const container = document.getElementById('previewMateriContainer');
-            container.innerHTML = ''; // Clear loading
 
-            if (m.mime.includes('pdf')) {
+            const container = document.getElementById('previewMateriContainer');
+            container.innerHTML = '';
+
+            if (m.previewUrl) {
+                // Preview langsung dari Google Drive (mendukung PDF & Gambar)
+                const iframe = document.createElement('iframe');
+                iframe.src = m.previewUrl;
+                iframe.className = 'w-full h-full border-0';
+                iframe.allow = 'autoplay';
+                container.appendChild(iframe);
+            } else if (m.base64 && m.mime.includes('pdf')) {
                 const iframe = document.createElement('iframe');
                 iframe.src = m.base64;
                 iframe.className = 'w-full h-full border-0';
                 container.appendChild(iframe);
-            } else if (m.mime.includes('image')) {
+            } else if (m.base64 && m.mime.includes('image')) {
                 const img = document.createElement('img');
                 img.src = m.base64;
                 img.className = 'max-w-full max-h-full object-contain p-4';
@@ -4159,6 +4224,12 @@ function onAbsensiTanggalChange() {
             if (!activePreviewMateriId) return;
             const m = materiList.find(x => x.id === activePreviewMateriId);
             if (!m) return;
+
+            if (m.downloadUrl) {
+                window.open(m.downloadUrl, '_blank');
+                showToast(`Mengunduh file dari Google Drive...`);
+                return;
+            }
 
             const link = document.createElement('a');
             const safeName = m.judul.replace(/[^a-zA-Z0-9_-]+/g, '_');
