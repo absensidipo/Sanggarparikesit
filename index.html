@@ -18,7 +18,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- html2pdf.js Library for Direct PDF Downloads -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <style>
+<style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         @media print {
             .no-print { display: none !important; }
@@ -28,8 +28,12 @@
         #reader video {
             border-radius: 1rem;
             object-fit: cover;
+            width: 100% !important;
         }
-    </style>
+        .pb-safe {
+            padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+        }
+    </style>>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased flex h-screen overflow-hidden">
 
