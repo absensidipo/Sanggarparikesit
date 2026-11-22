@@ -2951,12 +2951,8 @@ function onAbsensiTanggalChange() {
             }
             showToast(`${siswaObj.nama} sudah tercatat absensi hari ini.`, 'warning');
         }
-            if (!tbody) return;
-
-            const mLogBadge = document.getElementById('mobileBadgeLogCount');
         function renderLogAbsensi() {
             const tbody = document.getElementById('tableLogAbsenBody');
-            const badgeCount = document.getElementById('badgeLogCount');
             if (!tbody) return;
 
             const mLogBadge = document.getElementById('mobileBadgeLogCount');
