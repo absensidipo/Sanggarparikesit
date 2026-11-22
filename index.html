@@ -2005,9 +2005,11 @@
             }
         }
 
-        function processLoginAdmin() {
+function processLoginAdmin() {
             currentUserRole = 'Admin';
             currentPembinaId = null;
+            localStorage.setItem('parikesit_session', JSON.stringify({ role: 'Admin', pembinaId: null }));
+
             document.getElementById('loginScreen').classList.add('hidden');
             
             const adminSec = document.getElementById('nav-admin-section');
@@ -2024,13 +2026,15 @@
             switchTab('dashboard');
         }
 
-        function processLoginPembina() {
-            const pId = document.getElementById('selectLoginPembina').value;
+        function processLoginPembina(savedPembinaId = null) {
+            const pId = savedPembinaId || document.getElementById('selectLoginPembina').value;
             const pObj = pembinaList.find(x => x.id === pId);
             if (!pObj) return;
 
             currentUserRole = 'Pembina';
             currentPembinaId = pId;
+            localStorage.setItem('parikesit_session', JSON.stringify({ role: 'Pembina', pembinaId: pId }));
+
             document.getElementById('loginScreen').classList.add('hidden');
 
             const adminSec = document.getElementById('nav-admin-section');
@@ -2045,6 +2049,32 @@
 
             initAppData();
             switchTab('siswa');
+        }
+
+        function logoutApp() {
+            stopCameraScanner();
+            localStorage.removeItem('parikesit_session');
+            document.getElementById('loginScreen').classList.remove('hidden');
+        }
+
+        function restoreLoginSession() {
+            const rawSession = localStorage.getItem('parikesit_session');
+            if (!rawSession) return;
+            try {
+                const session = JSON.parse(rawSession);
+                if (session.role === 'Admin') {
+                    processLoginAdmin();
+                } else if (session.role === 'Pembina' && session.pembinaId) {
+                    const exists = pembinaList.some(p => p.id === session.pembinaId);
+                    if (exists) {
+                        processLoginPembina(session.pembinaId);
+                    } else {
+                        localStorage.removeItem('parikesit_session');
+                    }
+                }
+            } catch (e) {
+                localStorage.removeItem('parikesit_session');
+            }
         }
 
         function logoutApp() {
