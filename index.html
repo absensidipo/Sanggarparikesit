@@ -2502,10 +2502,6 @@
             return today;
         }
 
-        function onAbsensiTanggalChange() {
-            renderBelumAbsenList();
-        }
-
         function findSiswaByCode(rawCode) {
             const cleanCode = String(rawCode || '').trim().toLowerCase();
             if (!cleanCode) return null;
