@@ -233,7 +233,7 @@
         </header>
 
         <!-- Dynamic Content Body -->
-        <main class="p-4 sm:p-6 space-y-6 flex-1">
+        <main class="p-3 sm:p-6 pb-28 md:pb-6 space-y-5 sm:space-y-6 flex-1">
             
             <!-- SECTION 1: DASHBOARD -->
             <div id="tab-dashboard-content" class="space-y-6">
@@ -911,7 +911,38 @@
             </div>
         </main>
     </div>
+<!-- MOBILE BOTTOM NAVIGATION BAR (Tombol Absensi di Tengah Bawah) -->
+    <nav id="mobileBottomNav" class="md:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-30 no-print shadow-[0_-4px_20px_rgba(0,0,0,0.06)] pb-safe">
+        <div class="grid grid-cols-5 items-end h-16 px-1 max-w-lg mx-auto">
+            <button type="button" onclick="switchTab('dashboard')" id="mnav-dashboard" class="flex flex-col items-center justify-center gap-0.5 py-2 text-[#7B1113] transition">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <span class="text-[10px] font-bold">Beranda</span>
+            </button>
 
+            <button type="button" onclick="switchTab('siswa')" id="mnav-siswa" class="flex flex-col items-center justify-center gap-0.5 py-2 text-slate-400 hover:text-slate-700 transition">
+                <i data-lucide="users" class="w-5 h-5"></i>
+                <span class="text-[10px] font-semibold">Siswa</span>
+            </button>
+
+            <!-- TOMBOL UTAMA MULAI ABSENSI DI TENGAH BAWAH -->
+            <div class="flex flex-col items-center justify-end pb-1.5 relative">
+                <button type="button" id="mnav-absensi-btn" onclick="handleBottomAbsensiAction()" class="-mt-7 w-14 h-14 rounded-full bg-[#7B1113] hover:bg-red-900 active:scale-95 text-white shadow-xl shadow-red-900/30 ring-4 ring-white flex items-center justify-center transition-all">
+                    <i data-lucide="scan-line" class="w-7 h-7 text-amber-300"></i>
+                </button>
+                <span id="mnav-absensi-label" class="text-[10px] font-extrabold text-[#7B1113] mt-1">Mulai Absen</span>
+            </div>
+
+            <button type="button" onclick="switchTab('rekapabsensi')" id="mnav-rekapabsensi" class="flex flex-col items-center justify-center gap-0.5 py-2 text-slate-400 hover:text-slate-700 transition">
+                <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+                <span class="text-[10px] font-semibold">Rekap</span>
+            </button>
+
+            <button type="button" onclick="toggleMobileMenu()" id="mnav-menu" class="flex flex-col items-center justify-center gap-0.5 py-2 text-slate-400 hover:text-slate-700 transition">
+                <i data-lucide="grid" class="w-5 h-5"></i>
+                <span class="text-[10px] font-semibold">Lainnya</span>
+            </button>
+        </div>
+    </nav>
  <!-- MODAL KARTU QR ANGGOTA SISWA -->
     <div id="modalQrCard" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden no-print">
         <div class="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl border border-slate-100 m-4 space-y-5 text-center">
@@ -1018,7 +1049,8 @@
     </div>
 
     <!-- FLOATING TOAST NOTIFICATION (Pengganti alert() bawaan browser) -->
-    <div id="toastNotification" class="fixed bottom-5 right-5 z-50 hidden no-print transition-all duration-300">
+    <!-- FLOATING TOAST NOTIFICATION -->
+    <div id="toastNotification" class="fixed bottom-24 left-4 right-4 sm:left-auto sm:bottom-5 sm:right-5 z-50 hidden no-print transition-all duration-300 flex justify-center sm:justify-end pointer-events-none">
         <div id="toastBox" class="flex items-center gap-3 px-4 py-3 rounded-2xl shadow-lg border text-xs font-semibold bg-slate-900 text-white border-slate-700 max-w-sm">
             <span id="toastIcon">✅</span>
             <span id="toastText">Notifikasi</span>
@@ -1457,6 +1489,9 @@
 
         let syncDebounceTimer = null;
         let html5QrScanner = null;
+        let isCameraRunning = false;
+        let currentActiveTab = 'dashboard';
+        let activeAbsensiMobileTab = 'scan';
         let qrCodeObj = null;
         let selectedRaportSiswaId = null;
         let sanggarLogoBase64 = localStorage.getItem('parikesit_sanggar_logo') || '';
@@ -2140,6 +2175,22 @@
             if (tabId === 'rekapabsensi') renderRekapAbsensiTable();
             if (tabId === 'sikap') renderSikapTable();
             if (tabId === 'raport') renderRaportSiswaList();
+            currentActiveTab = tabId;
+            closeMobileMenu();
+
+            const scrollBox = document.getElementById('mainScrollContainer');
+            if (scrollBox) scrollBox.scrollTop = 0;
+
+            // Sinkronkan highlight Bottom Navigation Bar HP
+            ['dashboard', 'siswa', 'rekapabsensi'].forEach(mTab => {
+                const mBtn = document.getElementById(`mnav-${mTab}`);
+                if (!mBtn) return;
+                if (mTab === tabId) {
+                    mBtn.className = 'flex flex-col items-center justify-center gap-0.5 py-2 text-[#7B1113] transition';
+                } else {
+                    mBtn.className = 'flex flex-col items-center justify-center gap-0.5 py-2 text-slate-400 hover:text-slate-700 transition';
+                }
+            });
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
@@ -2474,79 +2525,173 @@
             );
         }
 
-        function startCameraScanner() {
-            initScanAudio();
+        function updateCameraUIState(running) {
+            isCameraRunning = running;
             const btnStart = document.getElementById('btnStartCam');
             const btnStop = document.getElementById('btnStopCam');
+            const placeholder = document.getElementById('readerPlaceholder');
+            const mBtn = document.getElementById('mnav-absensi-btn');
+            const mLabel = document.getElementById('mnav-absensi-label');
+
+            if (btnStart) btnStart.classList.toggle('hidden', running);
+            if (btnStop) {
+                btnStop.classList.toggle('hidden', !running);
+                btnStop.classList.toggle('flex', running);
+            }
+            if (placeholder) placeholder.classList.toggle('hidden', running);
+
+            if (mBtn && mLabel) {
+                if (running) {
+                    mBtn.className = '-mt-7 w-14 h-14 rounded-full bg-rose-600 hover:bg-rose-700 active:scale-95 text-white shadow-xl shadow-rose-600/40 ring-4 ring-white flex items-center justify-center transition-all animate-pulse';
+                    mBtn.innerHTML = '<i data-lucide="square" class="w-6 h-6 text-white"></i>';
+                    mLabel.textContent = 'Stop Scan';
+                    mLabel.className = 'text-[10px] font-extrabold text-rose-600 mt-1';
+                } else {
+                    mBtn.className = '-mt-7 w-14 h-14 rounded-full bg-[#7B1113] hover:bg-red-900 active:scale-95 text-white shadow-xl shadow-red-900/30 ring-4 ring-white flex items-center justify-center transition-all';
+                    mBtn.innerHTML = '<i data-lucide="scan-line" class="w-7 h-7 text-amber-300"></i>';
+                    mLabel.textContent = 'Mulai Absen';
+                    mLabel.className = 'text-[10px] font-extrabold text-[#7B1113] mt-1';
+                }
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+        }
+
+        function handleBottomAbsensiAction() {
+            if (currentActiveTab !== 'absensi') {
+                switchTab('absensi');
+                switchAbsensiMobileTab('scan');
+                setTimeout(() => {
+                    if (!isCameraRunning) startCameraScanner();
+                }, 150);
+            } else {
+                if (isCameraRunning) {
+                    stopCameraScanner();
+                } else {
+                    switchAbsensiMobileTab('scan');
+                    startCameraScanner();
+                }
+            }
+        }
+
+        function switchAbsensiMobileTab(subTab) {
+            activeAbsensiMobileTab = subTab;
+            const pScan = document.getElementById('absensiPanelScan');
+            const pRight = document.getElementById('absensiRightCol');
+            const pLog = document.getElementById('absensiPanelLog');
+            const pBelum = document.getElementById('absensiPanelBelum');
+
+            if (!pScan || !pRight || !pLog || !pBelum) return;
+
+            if (subTab === 'scan') {
+                pScan.classList.remove('hidden');
+                pRight.classList.add('hidden', 'lg:block');
+            } else if (subTab === 'belum') {
+                pScan.classList.add('hidden', 'lg:block');
+                pRight.classList.remove('hidden');
+                pBelum.classList.remove('hidden');
+                pLog.classList.add('hidden', 'lg:block');
+            } else if (subTab === 'log') {
+                pScan.classList.add('hidden', 'lg:block');
+                pRight.classList.remove('hidden');
+                pLog.classList.remove('hidden');
+                pBelum.classList.add('hidden', 'lg:block');
+            }
+
+            ['scan', 'belum', 'log'].forEach(t => {
+                const btn = document.getElementById(`mAbsTab-${t}`);
+                if (!btn) return;
+                if (t === subTab) {
+                    btn.className = 'py-2 rounded-lg text-xs font-bold bg-[#7B1113] text-white shadow-sm transition flex items-center justify-center gap-1';
+                } else {
+                    btn.className = 'py-2 rounded-lg text-xs font-bold text-slate-600 transition flex items-center justify-center gap-1';
+                }
+            });
+        }
+
+        function startCameraScanner() {
+            if (isCameraRunning) return;
+            initScanAudio();
 
             if (!html5QrScanner) {
                 html5QrScanner = new Html5Qrcode("reader");
             }
 
-            Html5Qrcode.getCameras().then(cameras => {
-                if (cameras && cameras.length) {
-                    const cameraId = cameras[cameras.length - 1].id;
-                    html5QrScanner.start(
-                        cameraId,
-                        { fps: 10, qrbox: { width: 200, height: 200 } },
-                        (decodedText) => {
-                            if (isProcessingScan) return;
-
-                            const scannedCode = String(decodedText || '').trim();
-                            if (!scannedCode) return;
-
-                            document.getElementById('scanInputNis').value = scannedCode;
-                            prosesScanAbsensi(false);
-                        },
-                        (errorMessage) => {}
-                    ).then(() => {
-                        btnStart.classList.add('hidden');
-                        btnStop.classList.remove('hidden');
-                    }).catch(err => {
-                        playScanSound('error');
-                        showToast("Gagal mengaktifkan kamera: " + err, 'error');
-                    });
-                } else {
-                    playScanSound('error');
-                    showToast("Kamera tidak ditemukan pada perangkat ini!", 'warning');
+            const qrConfig = {
+                fps: 10,
+                qrbox: (viewfinderWidth, viewfinderHeight) => {
+                    const size = Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.72);
+                    return { width: Math.max(160, size), height: Math.max(160, size) };
                 }
-            }).catch(err => {
-                playScanSound('error');
-                showToast("Izin kamera ditolak atau tidak didukung!", 'error');
+            };
+
+            const onScanSuccess = (decodedText) => {
+                if (isProcessingScan) return;
+                const scannedCode = String(decodedText || '').trim();
+                if (!scannedCode) return;
+                document.getElementById('scanInputNis').value = scannedCode;
+                prosesScanAbsensi(false);
+            };
+
+            // Prioritaskan kamera belakang (environment) untuk smartphone
+            html5QrScanner.start(
+                { facingMode: "environment" },
+                qrConfig,
+                onScanSuccess,
+                () => {}
+            ).then(() => {
+                updateCameraUIState(true);
+            }).catch(() => {
+                // Fallback jika perangkat tidak mendukung facingMode (misal webcam laptop)
+                Html5Qrcode.getCameras().then(cameras => {
+                    if (cameras && cameras.length) {
+                        const cameraId = cameras[cameras.length - 1].id;
+                        html5QrScanner.start(cameraId, qrConfig, onScanSuccess, () => {})
+                            .then(() => updateCameraUIState(true))
+                            .catch(err => {
+                                playScanSound('error');
+                                showToast("Gagal mengaktifkan kamera: " + err, 'error');
+                            });
+                    } else {
+                        playScanSound('error');
+                        showToast("Kamera tidak ditemukan pada perangkat ini!", 'warning');
+                    }
+                }).catch(() => {
+                    playScanSound('error');
+                    showToast("Izin kamera ditolak atau tidak didukung!", 'error');
+                });
             });
         }
 
         function stopCameraScanner() {
-            if (html5QrScanner) {
+            if (html5QrScanner && isCameraRunning) {
                 html5QrScanner.stop().then(() => {
-                    document.getElementById('btnStartCam').classList.remove('hidden');
-                    document.getElementById('btnStopCam').classList.add('hidden');
-                }).catch(err => console.log(err));
+                    updateCameraUIState(false);
+                }).catch(() => {
+                    updateCameraUIState(false);
+                });
+            } else {
+                updateCameraUIState(false);
             }
         }
 
-        function tampilkanStatusSudahAbsen(siswaObj, tgl, existingLog) {
-            const resCard = document.getElementById('scanResultCard');
-            const resName = document.getElementById('scanResName');
-            const resInfo = document.getElementById('scanResInfo');
-            const statusTercatat = existingLog.status || 'Hadir';
-
-            if (resCard && resName && resInfo) {
-                resCard.className = 'p-4 rounded-xl border bg-amber-50 border-amber-200 text-amber-900 text-xs space-y-1';
-                resName.textContent = `⛔ Sudah Tercatat (${statusTercatat}): ${siswaObj.nama}`;
-                resInfo.textContent = `NIS: ${siswaObj.id} sudah tercatat "${statusTercatat}" pada ${tgl} pukul ${existingLog.waktu}. Hapus di log jika ingin mengubah status.`;
-                resCard.classList.remove('hidden');
+        function toggleMobileMenu() {
+            const aside = document.getElementById('mainSidebar');
+            const backdrop = document.getElementById('mobileSidebarBackdrop');
+            if (!aside) return;
+            const isClosed = aside.classList.contains('-translate-x-full');
+            if (isClosed) {
+                aside.classList.remove('-translate-x-full');
+                if (backdrop) backdrop.classList.remove('hidden');
+            } else {
+                closeMobileMenu();
             }
-            const inputEl = document.getElementById('scanInputNis');
-            if (inputEl) inputEl.value = '';
+        }
 
-            const now = Date.now();
-            if (siswaObj.id !== lastWarningCode || (now - lastWarningTime) > 4000) {
-                lastWarningCode = siswaObj.id;
-                lastWarningTime = now;
-                playScanSound('error');
-                showToast(`${siswaObj.nama} sudah tercatat (${statusTercatat}) pada tanggal ini!`, 'warning');
-            }
+        function closeMobileMenu() {
+            const aside = document.getElementById('mainSidebar');
+            const backdrop = document.getElementById('mobileSidebarBackdrop');
+            if (aside) aside.classList.add('-translate-x-full');
+            if (backdrop) backdrop.classList.add('hidden');
         }
 
         // --- SCAN QR BARCODE ABSENSI LOGIC ---
@@ -2792,6 +2937,7 @@
         }
 
         function renderBelumAbsenList() {
+            function renderBelumAbsenList() {
             const tbody = document.getElementById('tableBelumAbsenBody');
             if (!tbody) return;
 
@@ -2809,6 +2955,9 @@
 
             const belumList = sourceList.filter(s => !getExistingAbsensiLog(s.id, tgl));
 
+            const mBelumBadge = document.getElementById('mobileBadgeBelumCount');
+            if (mBelumBadge) mBelumBadge.textContent = belumList.length;
+
             if (belumList.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="3" class="p-3 text-center text-emerald-700 font-medium">Semua siswa pada rombel ini sudah tercatat presensinya pada ${tgl}.</td></tr>`;
                 return;
@@ -2818,39 +2967,27 @@
                 const r = rombelList.find(x => x.id === s.rombelId) || {};
                 return `
                     <tr class="hover:bg-slate-50">
-                        <td class="p-2">
+                        <td class="p-2.5">
                             <p class="font-bold text-slate-800">${s.nama}</p>
-                            <p class="text-[10px] text-[#7B1113] font-semibold">${s.id}</p>
+                            <p class="text-[10px] text-[#7B1113] font-semibold">${s.id} <span class="sm:hidden text-slate-400 font-normal">• ${r.nama || '-'}</span></p>
                         </td>
-                        <td class="p-2 text-slate-500">${r.nama || '-'}</td>
-                        <td class="p-2 text-right whitespace-nowrap space-x-1">
-                            <button onclick="quickMarkAbsensi('${s.id}', 'Izin')" class="px-2 py-1 bg-sky-100 hover:bg-sky-200 text-sky-800 rounded-lg font-bold text-[10px] transition">Izin</button>
-                            <button onclick="quickMarkAbsensi('${s.id}', 'Sakit')" class="px-2 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg font-bold text-[10px] transition">Sakit</button>
-                            <button onclick="quickMarkAbsensi('${s.id}', 'Alpha')" class="px-2 py-1 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg font-bold text-[10px] transition">Alpha</button>
+                        <td class="p-2.5 text-slate-500 hidden sm:table-cell">${r.nama || '-'}</td>
+                        <td class="p-2.5 text-right whitespace-nowrap space-x-1">
+                            <button onclick="quickMarkAbsensi('${s.id}', 'Izin')" class="px-2.5 py-2 bg-sky-100 hover:bg-sky-200 active:scale-95 text-sky-800 rounded-lg font-bold text-[11px] transition">Izin</button>
+                            <button onclick="quickMarkAbsensi('${s.id}', 'Sakit')" class="px-2.5 py-2 bg-amber-100 hover:bg-amber-200 active:scale-95 text-amber-800 rounded-lg font-bold text-[11px] transition">Sakit</button>
+                            <button onclick="quickMarkAbsensi('${s.id}', 'Alpha')" class="px-2.5 py-2 bg-rose-100 hover:bg-rose-200 active:scale-95 text-rose-800 rounded-lg font-bold text-[11px] transition">Alpha</button>
                         </td>
                     </tr>
                 `;
             }).join('');
         }
-
-        function getStatusBadgeHtml(statusVal) {
-            const st = statusVal || 'Hadir';
-            if (st === 'Izin') {
-                return `<span class="px-2 py-0.5 bg-sky-100 text-sky-800 rounded font-bold text-[10px]">Izin</span>`;
-            }
-            if (st === 'Sakit') {
-                return `<span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded font-bold text-[10px]">Sakit</span>`;
-            }
-            if (st === 'Alpha') {
-                return `<span class="px-2 py-0.5 bg-rose-100 text-rose-800 rounded font-bold text-[10px]">Alpha</span>`;
-            }
-            return `<span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">Hadir</span>`;
-        }
-
         function renderLogAbsensi() {
             const tbody = document.getElementById('tableLogAbsenBody');
             const badgeCount = document.getElementById('badgeLogCount');
             if (!tbody) return;
+
+            const mLogBadge = document.getElementById('mobileBadgeLogCount');
+            if (mLogBadge) mLogBadge.textContent = absensiLogs.length;
 
             if (badgeCount) {
                 const cHadir = absensiLogs.filter(x => (x.status || 'Hadir') === 'Hadir').length;
