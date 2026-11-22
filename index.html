@@ -3028,6 +3028,7 @@ function onAbsensiTanggalChange() {
         }
         function renderLogAbsensi() {
             const tbody = document.getElementById('tableLogAbsenBody');
+            const badgeCount = document.getElementById('badgeLogCount');
             if (!tbody) return;
 
             const mLogBadge = document.getElementById('mobileBadgeLogCount');
