@@ -2063,6 +2063,7 @@ function processLoginAdmin() {
         function logoutApp() {
             stopCameraScanner();
             localStorage.removeItem('parikesit_session');
+            document.documentElement.classList.remove('has-session');
             document.getElementById('loginScreen').classList.remove('hidden');
         }
 
