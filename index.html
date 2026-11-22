@@ -2951,6 +2951,50 @@ function onAbsensiTanggalChange() {
             }
             showToast(`${siswaObj.nama} sudah tercatat absensi hari ini.`, 'warning');
         }
+        function renderBelumAbsenList() {
+            const tbody = document.getElementById('tableBelumAbsenBody');
+            if (!tbody) return;
+
+            const tgl = getActiveAbsensiTanggal();
+            const filterRombel = document.getElementById('filterRombelBelumAbsen')?.value || 'ALL';
+
+            let sourceList = siswaList;
+            if (currentUserRole === 'Pembina') {
+                const myRombelIds = rombelList.filter(r => r.pembinaId === currentPembinaId).map(r => r.id);
+                sourceList = sourceList.filter(s => myRombelIds.includes(s.rombelId));
+            }
+            if (filterRombel !== 'ALL') {
+                sourceList = sourceList.filter(s => s.rombelId === filterRombel);
+            }
+
+            const belumList = sourceList.filter(s => !getExistingAbsensiLog(s.id, tgl));
+
+            const mBelumBadge = document.getElementById('mobileBadgeBelumCount');
+            if (mBelumBadge) mBelumBadge.textContent = belumList.length;
+
+            if (belumList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="p-3 text-center text-emerald-700 font-medium">Semua siswa pada rombel ini sudah tercatat presensinya pada ${tgl}.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = belumList.map(s => {
+                const r = rombelList.find(x => x.id === s.rombelId) || {};
+                return `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-2.5">
+                            <p class="font-bold text-slate-800">${s.nama}</p>
+                            <p class="text-[10px] text-[#7B1113] font-semibold">${s.id} <span class="sm:hidden text-slate-400 font-normal">• ${r.nama || '-'}</span></p>
+                        </td>
+                        <td class="p-2.5 text-slate-500 hidden sm:table-cell">${r.nama || '-'}</td>
+                        <td class="p-2.5 text-right whitespace-nowrap space-x-1">
+                            <button onclick="quickMarkAbsensi('${s.id}', 'Izin')" class="px-2.5 py-2 bg-sky-100 hover:bg-sky-200 active:scale-95 text-sky-800 rounded-lg font-bold text-[11px] transition">Izin</button>
+                            <button onclick="quickMarkAbsensi('${s.id}', 'Sakit')" class="px-2.5 py-2 bg-amber-100 hover:bg-amber-200 active:scale-95 text-amber-800 rounded-lg font-bold text-[11px] transition">Sakit</button>
+                            <button onclick="quickMarkAbsensi('${s.id}', 'Alpha')" class="px-2.5 py-2 bg-rose-100 hover:bg-rose-200 active:scale-95 text-rose-800 rounded-lg font-bold text-[11px] transition">Alpha</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
         function renderLogAbsensi() {
             const tbody = document.getElementById('tableLogAbsenBody');
             if (!tbody) return;
