@@ -34,6 +34,14 @@
             padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
         }
     </style>>
+    <script>
+        if (localStorage.getItem('parikesit_session')) {
+            document.documentElement.classList.add('has-session');
+        }
+    </script>
+    <style>
+        .has-session #loginScreen { display: none !important; }
+    </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased flex h-screen overflow-hidden">
 
